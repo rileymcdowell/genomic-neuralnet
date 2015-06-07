@@ -1,2 +1,2 @@
-from common.parallel_predictors import run_predictors
+from genomic_neuralnet.common.parallel_predictors import run_predictors
 

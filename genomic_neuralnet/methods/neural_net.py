@@ -1,6 +1,6 @@
 import numpy as np
 
-from config import MAX_EPOCHS, CONTINUE_EPOCHS 
+from genomic_neuralnet.config import MAX_EPOCHS, CONTINUE_EPOCHS 
 from pybrain.structure import FeedForwardNetwork, LinearLayer, SigmoidLayer, FullConnection
 from pybrain.supervised.trainers import BackpropTrainer
 from pybrain.datasets import SupervisedDataSet, SupervisedDataSet, UnsupervisedDataSet
@@ -9,10 +9,10 @@ from pybrain.tools.shortcuts import buildNetwork
 def _get_nn(inputs, hidden):
     # One output layer (1,).
     layers = (inputs,) + hidden + (1,)
-    n = buildNetwork(*layers)
+    n = buildNetwork(*layers, hiddenclass=SigmoidLayer)
     return n
 
-def get_nn_prediction(train_data, train_truth, test_data, test_truth, hidden=(5,)): 
+def get_nn_prediction(train_data, train_truth, test_data, test_truth, hidden=(5,), weight_decay=0.0): 
     mean = np.mean(train_truth)
     sd = np.std(train_truth)
     ds = SupervisedDataSet(len(train_data.columns), 1)

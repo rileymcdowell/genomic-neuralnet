@@ -6,8 +6,8 @@ import pandas as pd
 from joblib import delayed, Parallel, cpu_count
 from functools import partial
 
-from common import run_predictors
-from methods import get_nn_prediction
+from genomic_neuralnet.common import run_predictors
+from genomic_neuralnet.methods import get_nn_prediction
 
 
 # 2 hidden layers, try all combinations less than 5x5.

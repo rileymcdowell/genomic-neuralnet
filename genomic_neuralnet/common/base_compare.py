@@ -2,7 +2,8 @@ from __future__ import print_function
 import sys
 import numpy as np
 import scipy.stats as sps
-from config.constants import TRAIN_SIZE, TRAIT_NAME
+
+from genomic_neuralnet.config import TRAIN_SIZE, TRAIT_NAME
 
 def try_predictors(markers, pheno, prediction_functions, print_progress=True):
     """

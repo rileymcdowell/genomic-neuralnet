@@ -1,8 +1,8 @@
 import numpy as np
 from joblib import delayed, Parallel
-from common.base_compare import try_predictors
-from config import CYCLES, REQUIRED_MARKERS_PROPORTION, CPU_CORES
-from config import markers, pheno
+from genomic_neuralnet.common.base_compare import try_predictors 
+from genomic_neuralnet.config import CYCLES, REQUIRED_MARKERS_PROPORTION, CPU_CORES
+from genomic_neuralnet.config import markers, pheno
 
 def run_predictors(prediction_functions):
     """

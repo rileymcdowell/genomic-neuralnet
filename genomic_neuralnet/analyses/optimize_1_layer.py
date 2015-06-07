@@ -4,15 +4,15 @@ import numpy as np
 
 from functools import partial
 
-from common import run_predictors 
-from methods import get_nn_prediction
+from genomic_neuralnet.common import run_predictors 
+from genomic_neuralnet.methods import get_nn_prediction
 
 prediction_functions = [ partial(get_nn_prediction, hidden=(1,))
                        , partial(get_nn_prediction, hidden=(2,))
                        , partial(get_nn_prediction, hidden=(3,))
                        , partial(get_nn_prediction, hidden=(4,))
                        ]
-prediction_names = tuple(['nn {}'.format(2**x) for x in range(1, len(prediction_functions) + 1)])
+prediction_names = tuple(['nn {}'.format(x + 1) for x in range(len(prediction_functions))])
 
 def main():
     accuracies = run_predictors(prediction_functions)
