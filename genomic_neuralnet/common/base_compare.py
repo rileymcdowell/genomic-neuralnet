@@ -29,13 +29,8 @@ def try_predictors(markers, pheno, prediction_functions, print_progress=True):
      
     accuracies = []
     for prediction_function in prediction_functions:
-        try:
-            predicted = prediction_function(train_data, train_truth, test_data, test_truth)
-            accuracies.append(sps.stats.pearsonr(predicted, test_truth)[0])
-        except:
-            print(train_data)
-            print(train_truth)
-            sys.exit()
+        predicted = prediction_function(train_data, train_truth, test_data, test_truth)
+        accuracies.append(sps.stats.pearsonr(predicted, test_truth)[0])
 
     # Print dots to show progress.
     if print_progress:
