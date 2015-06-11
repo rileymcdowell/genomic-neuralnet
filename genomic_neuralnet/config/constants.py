@@ -1,7 +1,7 @@
 import joblib
 
 TRAIT_NAME = 'FLOSD'
-CYCLES = 50 
+CYCLES = 20 
 TRAIN_SIZE = 0.9
 # Limit the number of markers required to participate in analysis.
 REQUIRED_MARKERS_PROPORTION = 0.0 
@@ -11,4 +11,4 @@ CPU_CORES = joblib.cpu_count()
 
 # Neuralnet Settings
 MAX_EPOCHS = 500
-CONTINUE_EPOCHS = 50 
+CONTINUE_EPOCHS = 10

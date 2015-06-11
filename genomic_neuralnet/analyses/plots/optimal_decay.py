@@ -7,18 +7,16 @@ from sklearn.gaussian_process import GaussianProcess
 # 500 max epocs, 50 continue epochs.
 
 # decay parameter, mean of error, stddev of error
-arr = np.array([ (0.01, 0.685105069612, 0.0759877028156)
-               , (0.02, 0.674977228938, 0.0802143086208)
-               , (0.03, 0.674160680155, 0.0870929930057)
-               , (0.04, 0.683696299106, 0.0821335771913)
-               , (0.05, 0.672079892171, 0.0891152185927)
-               , (0.06, 0.679699787385, 0.0795421312465)
-               , (0.07, 0.682550852117, 0.0640697724277)
-               , (0.08, 0.671859224547, 0.0849387154546)
+arr = np.array([ (0.01, 0.781274022734, 0.0410609485148)
+               , (0.015, 0.78253626307, 0.0386762378667)
+               , (0.02, 0.789138908225, 0.0379565273988)
+               , (0.025, 0.788893278602, 0.0333444387478)
+               , (0.03, 0.784581930656, 0.0385815200278)
                ])
 
+
 n = len(arr)
-sample_n = 50
+sample_n = 25 
 
 # Divide by sqrt(sample_n) to get standard error of the mean. 
 error = arr[:,2]/np.sqrt(sample_n) 
@@ -30,7 +28,7 @@ output = arr[:,1]
 gp.fit(input, output)
 
 # Predict the results for intermediate values from 1 to 32.
-x = np.arange(0, 0.1, 0.001)
+x = np.arange(0.00, 0.04, 0.001)
 x = x.reshape((x.shape[0], 1))
 y_pred, mse = gp.predict(x, eval_MSE=True)
 sigma = np.sqrt(mse)
