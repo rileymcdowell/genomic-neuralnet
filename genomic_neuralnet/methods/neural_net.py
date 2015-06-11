@@ -20,7 +20,7 @@ def get_nn_prediction(train_data, train_truth, test_data, test_truth, hidden=(5,
     for s_data, s_truth in zip(rows, train_truth):
         ds.addSample(s_data, (s_truth - mean) / sd)
     net = _get_nn(len(train_data.columns), hidden)
-    trainer = BackpropTrainer(net, ds)
+    trainer = BackpropTrainer(net, ds, weightdecay=weight_decay, momentum=0.5)
     trainer.trainUntilConvergence(maxEpochs=MAX_EPOCHS, continueEpochs=CONTINUE_EPOCHS, validationProportion=0.25)
     test_ds = UnsupervisedDataSet(len(train_data.columns))
     rows = map(lambda x: x[1], test_data.iterrows())
