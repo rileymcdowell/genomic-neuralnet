@@ -8,9 +8,9 @@ from genomic_neuralnet.common import run_predictors
 from genomic_neuralnet.methods import get_nn_prediction
 
 # These are probably reasonable values. Find the global maximum accuracy.
-layer_size = [1]
+layer_size = [2]
 layer_size = map(lambda x: tuple([x]), layer_size)
-decay_size = [0.02, 0.0225, 0.025, 0.0275, 0.03]
+decay_size = list(np.arange(0.00, 0.0501, 0.005))
 
 params = [{'hidden': h, 'weight_decay': wd} for h in layer_size for wd in decay_size]
 prediction_functions = map(lambda args: partial(get_nn_prediction, **args), params)
@@ -25,7 +25,6 @@ def main():
     for decay, accuracy_arr in zip(decay_size, accuracies):
         print(', ({}, {}, {})'.format(decay, np.mean(accuracy_arr), np.std(accuracy_arr)))
     print('Done')
-
 
 if __name__ == '__main__':
     main()

@@ -3,32 +3,46 @@ import matplotlib.pyplot as plt
 from sklearn.gaussian_process import GaussianProcess
 
 # Data collected from a pybrain/neuralnet run on the Bay-0xShahdara dataset FLOLD.
-# Used a 50 cycle run with train size 90% and 0% required markers.
-# 500 max epocs, 50 continue epochs.
+# Used a 20 cycle run with train size 90% and 0% required markers.
+# 200 epochs.
 
 # decay parameter, mean of error, stddev of error
-arr = np.array([ (0.01, 0.781274022734, 0.0410609485148)
-               , (0.015, 0.78253626307, 0.0386762378667)
-               , (0.02, 0.789138908225, 0.0379565273988)
-               , (0.025, 0.788893278602, 0.0333444387478)
-               , (0.03, 0.784581930656, 0.0385815200278)
-               ])
+DECAY_IDX = 0
+ACCURACY_IDX = 1
+STD_DEV_IDX = 2
+
+arr = np.array([ 
+      (0.005, 0.845783256895, 0.0419324147843)
+    , (0.01, 0.848194306499, 0.0411759612146)
+    , (0.015, 0.832825013298, 0.0445893131624)
+    , (0.02, 0.821842815211, 0.0434246480306)
+    , (0.025, 0.814743100871, 0.0446891849535)
+    , (0.03, 0.803703321072, 0.0474043756227)
+    , (0.035, 0.797347462263, 0.0545588421622)
+    , (0.04, 0.799289123822, 0.0508327346284)
+    , (0.045, 0.79495506474, 0.0491416502302)
+    , (0.05, 0.798770226778, 0.0497335578309)
+
+    ])
 
 
 n = len(arr)
-sample_n = 25 
 
-# Divide by sqrt(sample_n) to get standard error of the mean. 
-error = arr[:,2]/np.sqrt(sample_n) 
+# When using a squared exponential correlation function (the default)
+# the nugget values are equal to the variance of the points. That's
+# just the square of the standard deviations. 
+error = np.power(arr[:,2], STD_DEV_IDX) 
 gp = GaussianProcess(nugget=error)
-input = arr[:,0].reshape((n,1))
-output = arr[:,1]
+input = arr[:, DECAY_IDX].reshape((n,1))
+output = arr[:, ACCURACY_IDX]
 
 # Fit gaussian process model.
 gp.fit(input, output)
 
 # Predict the results for intermediate values from 1 to 32.
-x = np.arange(0.00, 0.04, 0.001)
+lower = np.min(arr[:, DECAY_IDX])
+upper = np.max(arr[:, DECAY_IDX])
+x = np.arange(lower, upper, 0.001)
 x = x.reshape((x.shape[0], 1))
 y_pred, mse = gp.predict(x, eval_MSE=True)
 sigma = np.sqrt(mse)
@@ -44,7 +58,7 @@ plt.fill(np.concatenate([x, x[::-1]]),
          alpha=0.5, fc='b', ec='None', label='95% confidence interval')
 
 title_1 = 'Gaussian process regression estimation of optimal'
-title_2 = 'decay parameter for single hidden layer'
+title_2 = 'decay parameter for two neuron hidden layer'
 plt.title('\n'.join([title_1, title_2]))
 plt.xlabel('Weight decay parameter')
 plt.ylabel('Correlation with measured phenotype')

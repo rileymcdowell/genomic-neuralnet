@@ -11,6 +11,7 @@ def run_predictors(prediction_functions):
     Returns the accuracies of the functions as list of arrays
     ordered by function.
     """
+
     # Remove markers with many missing values by filtering on the NOT of the columns with too many nulls.
     clean_markers = markers.ix[~(markers.T.isnull().sum() > len(markers) * (1 - REQUIRED_MARKERS_PROPORTION))]
     # Impute missing values with the mean for that column
