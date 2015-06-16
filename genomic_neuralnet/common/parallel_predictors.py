@@ -19,6 +19,7 @@ def run_predictors(prediction_functions):
 
     accuracies = Parallel(n_jobs=CPU_CORES)(delayed(try_predictors)(clean_markers, pheno, prediction_functions) for _ in range(CYCLES))
     accuracies = zip(*accuracies) # Transpose Array, so primary axis is prediction function.
+    print('')
 
     return accuracies
 
