@@ -1,7 +1,7 @@
 import joblib
 
 TRAIT_NAME = 'FLOSD'
-CYCLES = 8 
+CYCLES = 64
 TRAIN_SIZE = 0.9
 # Limit the number of markers required to participate in analysis.
 REQUIRED_MARKERS_PROPORTION = 0.0 

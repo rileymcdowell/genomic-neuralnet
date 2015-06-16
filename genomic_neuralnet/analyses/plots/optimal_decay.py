@@ -19,7 +19,6 @@ this_dir = os.path.dirname(__file__)
 decay_csv_path = os.path.join(this_dir, 'optimal_decay.csv')
 df = pd.DataFrame.from_csv(decay_csv_path, index_col=None)
 neurons = list(df['neurons'].unique())
-print(neurons)
 num_neurons = len(neurons)
 num_decays = len(df[df['neurons'] == 1]) 
 df.set_index = ['neurons']
