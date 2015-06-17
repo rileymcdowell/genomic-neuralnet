@@ -32,8 +32,10 @@ def get_nn_prediction(train_data, train_truth, test_data, test_truth, hidden=(5,
 
     # Supervised training dataset.
     ds = SupervisedDataSet(len(train_data.columns), 1)
+
     ds.setField('input', train_data) 
-    ds.setField('target', train_truth[:, np.newaxis])
+    ds.setField('target', (train_truth[:, np.newaxis] - mean) / sd)
+
     net = _get_nn(len(train_data.columns), hidden)
 
     _train_nn(net, ds, weight_decay)
