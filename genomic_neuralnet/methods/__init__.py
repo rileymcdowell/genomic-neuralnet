@@ -2,5 +2,8 @@ from genomic_neuralnet.methods.bayesian_ridge import get_brr_prediction
 from genomic_neuralnet.methods.elastic_net import get_en_prediction
 from genomic_neuralnet.methods.lasso_regression import get_lasso_prediction
 from genomic_neuralnet.methods.linear_regression import get_lr_prediction
-from genomic_neuralnet.methods.neural_net import get_nn_prediction
 from genomic_neuralnet.methods.ridge_regression import get_rr_prediction
+
+# Neural net predictors.
+from genomic_neuralnet.methods.neural_net import get_nn_prediction
+from genomic_neuralnet.methods.rbf_neural_net import get_rbf_nn_prediction
