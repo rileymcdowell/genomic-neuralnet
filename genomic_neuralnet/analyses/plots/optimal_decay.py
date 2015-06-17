@@ -18,6 +18,7 @@ X_RESOLUTION = 500
 this_dir = os.path.dirname(__file__)
 decay_csv_path = os.path.join(this_dir, 'optimal_decay.csv')
 df = pd.DataFrame.from_csv(decay_csv_path, index_col=None)
+df = df[df['weight_decay'] > 0.0] # Remove 0 values - these are outliers.
 neurons = list(df['neurons'].unique())
 num_neurons = len(neurons)
 num_decays = len(df[df['neurons'] == 1]) 
@@ -69,7 +70,7 @@ for neuron_num in neurons:
 
     # Remember x from the previous loop.
     ax.plot(x, y_pred)
-    ax.errorbar(input.ravel(), output, error, fmt='r.', markersize=10)
+    #ax.errorbar(input.ravel(), output, error, fmt='r.', markersize=10)
     ax.fill(np.concatenate([x, x[::-1]]),
              np.concatenate([y_pred - 1.9600 * sigma,
                             (y_pred + 1.9600 * sigma)[::-1]]),
