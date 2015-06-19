@@ -7,3 +7,4 @@ from genomic_neuralnet.methods.ridge_regression import get_rr_prediction
 # Neural net predictors.
 from genomic_neuralnet.methods.neural_net import get_nn_prediction
 from genomic_neuralnet.methods.rbf_neural_net import get_rbf_nn_prediction
+from genomic_neuralnet.methods.neural_net_dominance import get_nn_dom_prediction
