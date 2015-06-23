@@ -1,7 +1,6 @@
 import joblib
 
-TRAIT_NAME = 'FLOSD'
-CYCLES = 64
+CYCLES = 32 
 TRAIN_SIZE = 0.9
 # Limit the number of markers required to participate in analysis.
 REQUIRED_MARKERS_PROPORTION = 0.0 
@@ -12,4 +11,4 @@ CPU_CORES = joblib.cpu_count()
 MAX_EPOCHS = 200 # If TRY_CONVERGENCE is False, this is also the minimum # epochs.
 CONTINUE_EPOCHS = 10 # Ignored if TRY_CONVERGENCE is False
 TRY_CONVERGENCE = False
-USE_ARAC = True # If arac library is installed, we can train networks faster.
+USE_ARAC = False # If arac library is installed, we can train networks faster.
