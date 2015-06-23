@@ -9,8 +9,10 @@ from genomic_neuralnet.common import run_predictors
 from genomic_neuralnet.methods import get_nn_dom_prediction 
 
 # These ranges likely contain the global maximum. Find it. 
+layer_size = range(2,7)
+layer_size = [7]
 decay_step = 0.002
-decay_size = list(np.arange(0.00, 0.0501, decay_step))
+decay_size = list(np.arange(0.00, 0.0301, decay_step))
 
 params = [(h, wd) for h in layer_size for wd in decay_size]
 prediction_functions = map(lambda (h, wd): partial(get_nn_dom_prediction, hidden=(h,), weight_decay=wd), params)
