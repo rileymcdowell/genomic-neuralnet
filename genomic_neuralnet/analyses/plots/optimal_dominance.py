@@ -79,6 +79,10 @@ for neuron_num in neurons:
     ax.set_title('{} nodes in hidden layer'.format(neuron_num))
     ax.set_xlabel('Weight Decay Parameter')
     ax.set_ylabel('Prediction Accuracy (correlation)')
+    ax.axhline(y=0.85, color='k', linewidth=2)
 
+title_1 = 'Multi-layer perceptron neural network predictive accuracy'
+title_2 = 'when run on training set containing two entries per SNP.'
+plt.suptitle('\n'.join([title_1, title_2]), y=0.02, verticalalignment='bottom')
 plt.show()
 plt.savefig('optimal_dominance.png')
