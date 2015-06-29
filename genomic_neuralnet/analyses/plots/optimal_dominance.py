@@ -71,7 +71,7 @@ for neuron_num in neurons:
 
     # Remember x from the previous loop.
     #ax.plot(x, y_pred)
-    ax.errorbar(input.ravel(), output, error/np.sqrt(64), fmt='r.', markersize=10)
+    ax.errorbar(input.ravel(), output, error/np.sqrt(100), fmt='r.', markersize=10)
     #ax.fill(np.concatenate([x, x[::-1]]),
     #         np.concatenate([y_pred - 1.9600 * sigma,
     #                        (y_pred + 1.9600 * sigma)[::-1]]),
