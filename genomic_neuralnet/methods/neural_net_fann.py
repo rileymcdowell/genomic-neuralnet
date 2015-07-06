@@ -5,8 +5,8 @@ from genomic_neuralnet.config import MAX_EPOCHS, CONTINUE_EPOCHS, TRY_CONVERGENC
 from genomic_neuralnet.common.in_temp_dir import in_temp_dir 
 from fann2 import libfann
 
-LEARNING_RATE = 0.01
-_MOMENTUM = 0.5
+_LEARNING_RATE = 0.01
+_LEARNING_MOMENTUM = 0.5
 _ITERATIONS_BETWEEN_REPORTS = 1000
 _DESIRED_ERROR = 0 # If 0, always train until max epochs.
 
@@ -19,8 +19,8 @@ def _get_nn(inputs, hidden):
     """
     ann = libfann.neural_net()
     ann.create_standard_array((inputs, hidden[0], 1))
-    ann.set_learning_rate(LEARNING_RATE)
-    ann.set_activation_function_hidden(libfann.GAUSSIAN_SYMMETRIC)
+    ann.set_learning_rate(_LEARNING_RATE)
+    ann.set_activation_function_hidden(libfann.SIGMOID_SYMMETRIC)
     ann.set_activation_function_output(libfann.LINEAR_PIECE_SYMMETRIC)
     ann.set_training_algorithm(libfann.TRAIN_RPROP)
     ann.set_rprop_delta_zero(1e-6)
@@ -31,8 +31,8 @@ def _train_nn(neuralnet, train_data, train_truth, weight_decay):
     A stateful method that trains the network
     on a dataset.
     """
+    neuralnet.set_quickprop_decay(-1 * weight_decay)
     _write_training_file(train_data, train_truth)
-    # TODO: Implement weight decay and/or quickprop.
     neuralnet.train_on_file(_TRAIN_FILE, MAX_EPOCHS, _ITERATIONS_BETWEEN_REPORTS, _DESIRED_ERROR)
     neuralnet.save(_NETWORK_FILE)
     return neuralnet
@@ -52,7 +52,7 @@ def _write_training_file(train_data, train_truth):
         f.write('\n'.join(lines))
 
 @in_temp_dir
-def get_rbf_nn_prediction(train_data, train_truth, test_data, test_truth, hidden=(5,), weight_decay=0.): 
+def get_fast_nn_prediction(train_data, train_truth, test_data, test_truth, hidden=(5,), weight_decay=0.): 
     scaler = MinMaxScaler(feature_range = (-1, 1))
     train_truth = scaler.fit_transform(train_truth)
     test_truth = scaler.transform(test_truth)
