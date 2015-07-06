@@ -4,13 +4,16 @@ import numpy as np
 from functools import partial
 from genomic_neuralnet.common import run_predictors
 from genomic_neuralnet.methods import \
-        get_nn_prediction , get_rbf_nn_prediction
+        get_nn_prediction , get_rbf_nn_prediction, \
+        get_fast_nn_prediction, get_fast_nn_dom_prediction, \
+        get_cascade_nn_prediction
 
-optimal_nn = partial(get_nn_prediction, hidden=(2,), weight_decay=0.025) # Optimal hidden layer neurons == 2
-# TODO: Get this to return sane values 
-optimal_rbf_nn = partial(get_rbf_nn_prediction, hidden=(2,), weight_decay=0.025)
-prediction_functions = [  optimal_nn    ,  optimal_rbf_nn ] 
-prediction_names     = [ 'neuralnet'    , 'rbf_neuralnet' ] 
+optimal_rbf_nn = partial(get_rbf_nn_prediction, hidden=(2,), weight_decay=0)
+optimal_fast_nn = partial(get_fast_nn_prediction, hidden=(2,), weight_decay=0)
+optimal_fast_nn_dom = partial(get_fast_nn_dom_prediction, hidden=(2,), weight_decay=0)
+
+prediction_functions = [  optimal_fast_nn,  optimal_rbf_nn,  optimal_fast_nn_dom ]
+prediction_names     = [ 'normal_nn'     , 'rbf_nn'       , 'dominance_nn'       ] 
 
 def main():
     accuracies = run_predictors(prediction_functions)
