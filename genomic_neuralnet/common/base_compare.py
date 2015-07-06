@@ -5,7 +5,7 @@ import scipy.stats as sps
 
 from genomic_neuralnet.config import TRAIN_SIZE, TRAIT_NAME
 
-def try_predictors(markers, pheno, prediction_functions, print_progress=True):
+def try_predictor(markers, pheno, prediction_function, id_val=None):
     """
     Pass in markers, phenotypes, and a list of prediction functions.
     Returns the prediction accuracy (pearson r) relative to measured phenotype. 
@@ -20,22 +20,16 @@ def try_predictors(markers, pheno, prediction_functions, print_progress=True):
     test_idxs = np.setdiff1d(good_idxs, train_idxs)
 
     # Train data
-    train_data = markers.ix[:,train_idxs].T
-    train_truth = pheno[trait].ix[train_idxs]
+    train_data = markers.ix[:,train_idxs].T.values
+    train_truth = pheno[trait].ix[train_idxs].values
 
     # Test data
-    test_data = markers.ix[:,test_idxs].T
-    test_truth = pheno[trait].ix[test_idxs]
+    test_data = markers.ix[:,test_idxs].T.values
+    test_truth = pheno[trait].ix[test_idxs].values
+    
      
-    accuracies = []
-    for prediction_function in prediction_functions:
-        predicted = prediction_function(train_data, train_truth, test_data, test_truth)
-        accuracies.append(sps.stats.pearsonr(predicted, test_truth)[0])
-
-    # Print dots to show progress.
-    if print_progress:
-        print('.', end='')
-        sys.stdout.flush()
-
-    return tuple(accuracies) 
+    predicted = prediction_function(train_data, train_truth, test_data, test_truth)
+    accuracy = sps.stats.pearsonr(predicted, test_truth)[0]
+    
+    return accuracy, id_val
 
