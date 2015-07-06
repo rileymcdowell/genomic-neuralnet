@@ -31,7 +31,7 @@ df.set_index = ['neurons']
 predictions = np.zeros((num_neurons, X_RESOLUTION))
 errors = np.zeros((num_neurons, X_RESOLUTION))
 sub_dfs = []
-for neuron_num in neurons:
+for neuron_idx, neuron_num in enumerate(neurons):
     sub_df = df[df['neurons'] == neuron_num]
     error = np.power(sub_df['std_dev'], 2) 
     n = len(error)
@@ -50,18 +50,17 @@ for neuron_num in neurons:
     y_pred, mse = gp.predict(x, eval_MSE=True)
     sigma = np.sqrt(mse)
     
-    predictions[neuron_num - 1,:] = y_pred
-    errors[neuron_num - 1,:] = sigma 
+    predictions[neuron_idx,:] = y_pred
+    errors[neuron_idx,:] = sigma 
     sub_dfs.append(sub_df)
 
 # Plot the results.
 sns.set_style('darkgrid')
-f, axarr = plt.subplots(2, 2, sharex=True, sharey=True)
+f, axarr = plt.subplots(2, 3, sharex=True, sharey=True)
 
-for neuron_num in neurons:
-    neuron_idx = neuron_num - 1
-    ax_idx1 = neuron_idx / 2
-    ax_idx2 = neuron_idx % 2
+for neuron_idx, neuron_num in enumerate(neurons):
+    ax_idx1 = neuron_idx / 3
+    ax_idx2 = neuron_idx % 3
     ax = axarr[ax_idx1, ax_idx2]
     y_pred = predictions[neuron_idx]
     sigma = errors[neuron_idx]
@@ -70,11 +69,11 @@ for neuron_num in neurons:
 
     # Remember x from the previous loop.
     ax.plot(x, y_pred)
-    #ax.errorbar(input.ravel(), output, error, fmt='r.', markersize=10)
-    ax.fill(np.concatenate([x, x[::-1]]),
-             np.concatenate([y_pred - 1.9600 * sigma,
-                            (y_pred + 1.9600 * sigma)[::-1]]),
-             alpha=0.5, fc='b', ec='None')
+    ax.errorbar(input.ravel(), output, error, fmt='r.', markersize=10)
+    #ax.fill(np.concatenate([x, x[::-1]]),
+    #         np.concatenate([y_pred - 1.9600 * sigma,
+    #                        (y_pred + 1.9600 * sigma)[::-1]]),
+    #         alpha=0.5, fc='b', ec='None')
     ax.set_title('{} nodes in hidden layer'.format(neuron_num))
     ax.set_xlabel('Weight Decay Parameter')
     ax.set_ylabel('Prediction Accuracy (correlation)'.format(neuron_num))
