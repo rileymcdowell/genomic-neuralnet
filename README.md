@@ -3,14 +3,13 @@
 This python code leverages the pybrain and scikit-learn libraries, 
 as well as a built-in artifical neural network implementation
 to perform genomic selection on genotypic and phenotypic data.
-It compares prediction accuracy between prediction methods.
+It compares prediction accuracy between modeling methods.
 
 The purpose of this codebase is to evaluate the 
 predictive performance of neural networks and other 
-alternate statistical modeling techniques to standard 
-mixed linear models that have historically been used for
-this purpose.
-
+alternate statistical modeling techniques when compared to 
+ 1. Standard mixed linear models 
+ 2. Published alternative models 
 
 ## Running the code
 
