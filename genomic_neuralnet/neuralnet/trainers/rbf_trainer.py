@@ -23,4 +23,19 @@ class RbfTrainer(object):
 
         output_layer.weights = weights.T
 
+    def select_best_centers(self, sample_data, sample_output):
+        rbf_layer = self._target_network.layers[0] 
+        output_layer = self._target_network.layers[1]
+        output_layer.biases = 0 # Don't use these right now.
+        centers = rbf_layer.centers
+
+        candidate_centers = sample_data
+
+        # First try...
+        activations = rbf_layer.activate_many(sample_data)
+        pseudoinverse = pinv(activations)
+        weights = np.dot(pseudoinverse, sample_output)
+
+        output_layer.weights = weights.T
+
 
