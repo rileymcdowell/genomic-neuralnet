@@ -31,17 +31,17 @@ def get_nn_prediction(train_data, train_truth, test_data, test_truth, hidden=(5,
     sd = np.std(train_truth)
 
     # Supervised training dataset.
-    ds = SupervisedDataSet(len(train_data.columns), 1)
+    ds = SupervisedDataSet(train_data.shape[0], 1)
 
     ds.setField('input', train_data) 
     ds.setField('target', (train_truth[:, np.newaxis] - mean) / sd)
 
-    net = _get_nn(len(train_data.columns), hidden)
+    net = _get_nn(train_data.shape[1], hidden)
 
     _train_nn(net, ds, weight_decay)
 
     # Unsupervised (test) dataset.
-    test_ds = UnsupervisedDataSet(len(train_data.columns))
+    test_ds = UnsupervisedDataSet(train_data.shape[0])
     test_ds.setField('sample', test_data)
 
     predicted = net.activateOnDataset(test_ds) * sd + mean

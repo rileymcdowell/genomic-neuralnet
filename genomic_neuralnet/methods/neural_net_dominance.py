@@ -31,7 +31,6 @@ def _convert_to_individual_alleles(array):
     Convert SNPs to individual copies so neuralnet can learn dominance relationships.
     [-1, 0, 1] => [(0, 0), (0, 1), (1, 1)] => [0, 0, 0, 1, 1, 1]
     """
-    array = array.values # We don't want a pandas series anymore.
     # Set non-integer values to 0 (het)
     array = np.trunc(array)
     incr = array + 1 # Now we have 0, 1, and 2

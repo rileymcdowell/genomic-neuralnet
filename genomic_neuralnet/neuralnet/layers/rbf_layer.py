@@ -34,9 +34,9 @@ class RbfLayer(Layer):
         Outputs calculated using an RBF.
         """
         # Tile and repeat for easy calculation of euclidean distance.
-        inputs_repeat = np.repeat(inputs, self.centers.shape[0], axis=0).T
+        inputs_repeat = np.repeat(inputs, self.centers.shape[0], axis=0)
         centers_tile = np.tile(self.centers.T, inputs.shape[0])
-        pairs = inputs_repeat - centers_tile # Easy to do on tiled data.
+        pairs = inputs_repeat.T - centers_tile # Easy to do on tiled data.
         norm = np.sqrt(np.sum(pairs**2, axis=0)).reshape(inputs.shape[0], self.centers.shape[0])
         out = np.exp(-self.beta * norm**2 / (2*self.spread))
         return out
