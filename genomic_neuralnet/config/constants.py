@@ -16,4 +16,5 @@ USE_ARAC = False # If arac library is installed, we can train networks faster.
 # Pick a processing backend for the modeling.
 CELERY_BACKEND = 'celery'
 JOBLIB_BACKEND = 'joblib'
+DEBUG_BACKEND = 'debug'
 BACKEND = JOBLIB_BACKEND 

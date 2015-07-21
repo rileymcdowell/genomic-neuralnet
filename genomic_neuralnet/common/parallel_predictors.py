@@ -6,7 +6,7 @@ import itertools
 from genomic_neuralnet.common.base_compare import try_predictor
 from genomic_neuralnet.config import CYCLES, REQUIRED_MARKERS_PROPORTION, CPU_CORES
 from genomic_neuralnet.config import markers, pheno
-from genomic_neuralnet.config import BACKEND, CELERY_BACKEND, JOBLIB_BACKEND
+from genomic_neuralnet.config import BACKEND, CELERY_BACKEND, JOBLIB_BACKEND, DEBUG_BACKEND 
 
 if BACKEND == CELERY_BACKEND:
     try:
@@ -21,6 +21,14 @@ def _run_joblib(job_params):
     from joblib import delayed, Parallel
     accuracies = Parallel(n_jobs=CPU_CORES)(delayed(try_predictor)(*x) for x in job_params) 
     return accuracies
+
+def _run_debug(job_params):
+    """ Single process for easy debugging. """
+    accuracies = []
+    for args in job_params:
+        accuracies.append(try_predictor(*args))
+    return accuracies
+
 
 def _run_celery(job_params):
     tasks = [celery_try_predictor.delay(*x) for x in job_params]
@@ -57,6 +65,8 @@ def run_predictors(prediction_functions):
         accuracies = _run_joblib(job_params)
     elif BACKEND == CELERY_BACKEND:
         accuracies = _run_celery(job_params)
+    elif BACKEND == DEBUG_BACKEND:
+        accuracies = _run_debug(job_params)
     else:
         print('Unsupported Processing Backend')
         sys.exit(1)
