@@ -31,7 +31,11 @@ def test_can_approximate_sin_function():
     # No problem getting within 0.1 of actual function. 
     assert np.allclose(y_dense, predicted_out, rtol=0.0, atol=1e-1) 
      
-def test_can_select_centers_for_multiple_inputs():
+def test_can_select_centers_for_multiple_inputs_ordinary_least_squares():
+    """
+    Specifically test for training with the non-fast ordinary least squares 
+    training method.
+    """
     inputs = 2
     outputs = 1
     x, y = np.mgrid[-1:1:15j, -1:1:15j]
@@ -46,7 +50,31 @@ def test_can_select_centers_for_multiple_inputs():
 
     xy = np.column_stack([x.flatten(), y.flatten()])
     z = z.reshape((np.prod(z.shape), 1))
-    rbf_trainer.train_with_best_centers(xy, z, max_centers=4)
+    rbf_trainer.train_with_best_centers(xy, z, num_centers=4, fast_ols=False)
+
+    xy_dense = np.column_stack([x_dense.flatten(), y_dense.flatten()])
+    predicted_out = rbf_network.activate_many(xy_dense)
+
+    # No problem getting within 0.1 of actual function. 
+    print(np.max(np.abs(z_dense.flatten() - predicted_out.flatten())))
+    assert np.allclose(z_dense.flatten(), predicted_out.flatten(), rtol=0.0, atol=1e-1) 
+
+def test_can_train_with_ols_algorithm():
+    inputs = 2
+    outputs = 1
+    x, y = np.mgrid[-1:1:15j, -1:1:15j]
+    x_dense, y_dense = np.mgrid[-1:1:30j, -1:1:30j]
+    def z_func(x, y):
+        return np.sin(x) / 2  + np.cos(y)
+    z = z_func(x, y)
+    z_dense = z_func(x_dense, y_dense)
+
+    rbf_network = get_rbf_network(inputs, 1, outputs, centers=None, spread=8.)
+    rbf_trainer = RbfTrainer(rbf_network)
+
+    xy = np.column_stack([x.flatten(), y.flatten()])
+    z = z.reshape((np.prod(z.shape), 1))
+    rbf_trainer.train_with_best_centers(xy, z, num_centers=8)
 
     xy_dense = np.column_stack([x_dense.flatten(), y_dense.flatten()])
     predicted_out = rbf_network.activate_many(xy_dense)
