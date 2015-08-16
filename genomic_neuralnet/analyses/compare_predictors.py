@@ -9,24 +9,29 @@ from genomic_neuralnet.methods import \
         get_lasso_prediction, get_lr_prediction, \
         get_nn_prediction, get_rr_prediction, \
         get_fast_nn_prediction, get_fast_nn_dom_prediction, \
-        get_nn_dom_prediction
+        get_nn_dom_prediction, get_rbf_nn_prediction, \
+        get_sgd_prediction
 
 optimal_nn = partial(get_nn_prediction, hidden=(2,), weight_decay=0.008)
 optimal_dom = partial(get_nn_dom_prediction, hidden=(2,), weight_decay=0.008)
+optimal_lasso = partial(get_lasso_prediction, alpha=0.06)
+optimal_en = partial(get_en_prediction, alpha=0.10)
+optimal_rbf = partial(get_rbf_nn_prediction, centers=200, spread=150)
+optimal_rr = partial(get_rr_prediction, alpha=500)
 
 prediction_functions = [ optimal_nn
-                       , get_nn_dom_prediction
                        , get_fast_nn_prediction
                        , get_fast_nn_dom_prediction
-                       , get_rr_prediction
-                       , get_lr_prediction
+                       , optimal_rr 
+                       , get_lr_prediction 
                        , get_brr_prediction
-                       , get_lasso_prediction
-                       , get_en_prediction
+                       , optimal_lasso 
+                       , optimal_en 
+                       , optimal_rbf
+                       , get_sgd_prediction
                        ]
 
 prediction_names     = [ 'wdecay_mlp_nn'
-                       , 'wdecay_dom_mlp_nn'
                        , 'std_mlp_nn'
                        , 'dom_mlp_nn'
                        , 'ridge_reg'
@@ -34,6 +39,8 @@ prediction_names     = [ 'wdecay_mlp_nn'
                        , 'baesian_ridge_reg'
                        , 'lasso_reg'
                        , 'elastic_net'
+                       , 'rbf_nn'
+                       , 'sgd_reg'
                        ]
 
 def main():

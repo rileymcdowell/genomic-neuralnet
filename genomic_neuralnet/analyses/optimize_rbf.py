@@ -9,11 +9,11 @@ from genomic_neuralnet.common import run_predictors
 from genomic_neuralnet.methods import get_rbf_nn_prediction 
 
 # These ranges likely contain the global maximum. Find it. 
-hidden_size = [200] 
-spread = [15]
+hidden_size = [10, 20, 30, 40, 50, 60]
+spread = np.arange(20, 501, 20) # [20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 220]
 
 params = [(h, s) for h in hidden_size for s in spread]
-prediction_functions = map(lambda (h, s): partial(get_rbf_nn_prediction, max_centers=h, spread=s), params)
+prediction_functions = map(lambda (h, s): partial(get_rbf_nn_prediction, centers=h, spread=s), params)
 
 def main():
     df = pd.DataFrame.from_records(params, columns=['neurons', 'spread'])

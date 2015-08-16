@@ -4,16 +4,15 @@ import numpy as np
 from functools import partial
 from genomic_neuralnet.common import run_predictors
 from genomic_neuralnet.methods import \
-        get_brr_prediction, get_en_prediction, \
-        get_lasso_prediction, get_lr_prediction, \
-        get_nn_prediction, get_rr_prediction
+        get_rr_prediction
 
 prediction_functions = []
-alphas = list(np.arange(0.01, 1.01,0.01))
+# alphas = list(np.logspace(-8., 8., base=10, num=17)) # Wide search
+alphas =  list(np.linspace(10, 1000, num=100))# Narrow Search
 for x in alphas:
-    prediction_functions.append(partial(get_en_prediction, alpha=x))
+    prediction_functions.append(partial(get_rr_prediction, alpha=x))
 
-prediction_names = ['elastic_alpha={}'.format(x) for x in alphas]
+prediction_names = ['ridge_alpha={}'.format(x) for x in alphas]
 
 def main():
     accuracies = run_predictors(prediction_functions)

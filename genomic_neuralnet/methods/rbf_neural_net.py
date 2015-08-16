@@ -12,22 +12,22 @@ def _get_nn(inputs, spread):
     ann = get_rbf_network(inputs, hidden, 1, spread=spread)
     return ann
 
-def _train_nn(rbf_net, train_data, train_truth, max_centers):
+def _train_nn(rbf_net, train_data, train_truth, centers):
     """
     A stateful method that trains the network
     on a dataset.
     """
     rbf_trainer = RbfTrainer(rbf_net)
-    rbf_trainer.train_with_best_centers(train_data, train_truth[:,np.newaxis], max_centers)
+    rbf_trainer.train_with_best_centers(train_data, train_truth[:,np.newaxis], centers)
 
-def get_rbf_nn_prediction(train_data, train_truth, test_data, test_truth, max_centers=8, spread=1): 
+def get_rbf_nn_prediction(train_data, train_truth, test_data, test_truth, centers=8, spread=1): 
     scaler = StandardScaler()
     train_truth = scaler.fit_transform(train_truth)
     test_truth = scaler.transform(test_truth)
 
     net = _get_nn(train_data.shape[1], spread=spread)
 
-    _train_nn(net, train_data, train_truth, max_centers)
+    _train_nn(net, train_data, train_truth, centers)
 
     out = net.activate_many(test_data)
 

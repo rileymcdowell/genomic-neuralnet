@@ -29,7 +29,22 @@ class RbfTrainer(object):
 
         self._output_layer.weights = weights.T
 
-    def _train_with_best_centers_ols(self, sample_data, sample_output, num_centers=None):
+    def train_with_best_centers(self, sample_data, sample_output, num_centers=None, fast_ols=True, verbose=False):
+        """
+        Select the best centers by sampling them from the dataset one at a
+        time, always choosing the center that minimizes the remaining MSE. 
+        Continue until num_centers are selected. If num_centers is not 
+        specified, we will use (c == n) centers 
+        a.k.a len(centers) == len(sample_data). That default is almost certain
+        to overfit your data if you have sampling/measurement error.
+        """
+
+        if fast_ols:  
+            self._train_with_best_centers_ols(sample_data, sample_output, num_centers, verbose)
+        else:
+            self._train_with_best_centers_ls(sample_data, sample_output, num_centers, verbose)
+
+    def _train_with_best_centers_ols(self, sample_data, sample_output, num_centers, verbose):
         """
         Select the best centers using the orthogonal least squares algorithm.
         Sample them from the dataset one at a time, always choosing the 
@@ -53,6 +68,7 @@ class RbfTrainer(object):
             best_activation_idx = self._select_next_activation_idx( available_activation_idxs
                                                                   , orthogonalized_activations 
                                                                   , sample_output
+                                                                  , verbose
                                                                   )
             # Remove the activation index that was just chosen.
             chosen_index = available_activation_idxs == best_activation_idx
@@ -73,7 +89,7 @@ class RbfTrainer(object):
         # Finish training now that the best centers are selected.
         self.train_on_data(sample_data, sample_output)
 
-    def _select_next_activation_idx(self, available_activation_idxs, orthogonalized_activations, sample_output):
+    def _select_next_activation_idx(self, available_activation_idxs, orthogonalized_activations, sample_output, verbose):
         # Select the next orthogonal center by choosing the activation (of a center) that 
         # maximizes the reduction in output energy. This reduces error maximally.
         error_reductions = np.zeros(len(orthogonalized_activations)) # Will be sparse after first selection.
@@ -86,7 +102,8 @@ class RbfTrainer(object):
 
         largest_error_reduction_idx = np.argmax(error_reductions)
 
-        print('selected center at idx {}'.format(largest_error_reduction_idx))
+        if verbose:
+            print('selected center at idx {}'.format(largest_error_reduction_idx))
         return largest_error_reduction_idx 
 
     def _get_all_possible_activations_ols(self, sample_data):
@@ -100,23 +117,9 @@ class RbfTrainer(object):
         all_activations = np.array(all_activations)
         return all_activations.squeeze()
 
-    def train_with_best_centers(self, sample_data, sample_output, num_centers=None, fast_ols=True):
-        """
-        Select the best centers by sampling them from the dataset one at a
-        time, always choosing the center that minimizes the remaining MSE. 
-        Continue until num_centers are selected. If num_centers is not 
-        specified, we will use (c == n) centers 
-        a.k.a len(centers) == len(sample_data). That default is almost certain
-        to overfit your data if you have sampling/measurement error.
-        """
-
-        if fast_ols:  
-            self._train_with_best_centers_ols(sample_data, sample_output, num_centers)
-        else:
-            self._train_with_best_centers_ls(sample_data, sample_output, num_centers)
 
 
-    def _train_with_best_centers_ls(self, sample_data, sample_output, num_centers=None):
+    def _train_with_best_centers_ls(self, sample_data, sample_output, num_centers, verbose):
         """
         Select the best centers by sampling them from the dataset one at a
         time, always choosing the center that minimizes the remaining MSE. 
@@ -136,7 +139,7 @@ class RbfTrainer(object):
         all_center_idxs = np.arange(sample_data.shape[0])
         available_center_idxs = np.arange(sample_data.shape[0])
         for _ in range(num_centers):
-            best_center_idx = self._select_next_best_center(available_center_idxs, sample_data, sample_output)
+            best_center_idx = self._select_next_best_center(available_center_idxs, sample_data, sample_output, verbose)
             # Remove the activation index that was just chosen.
             chosen_index = available_center_idxs == best_center_idx
             available_center_idxs = available_center_idxs[~chosen_index]
@@ -144,7 +147,7 @@ class RbfTrainer(object):
         # Finish training now that the best centers are selected.
         self.train_on_data(sample_data, sample_output)
 
-    def _select_next_best_center(self, available_center_idxs, sample_data, sample_output):
+    def _select_next_best_center(self, available_center_idxs, sample_data, sample_output, verbose):
         self._rbf_layer.num_neurons += 1
         self._output_layer.num_neurons += 1
 
@@ -177,5 +180,6 @@ class RbfTrainer(object):
         else:
             self._rbf_layer.centers = np.row_stack([old_centers, sample_data[center_idx]])
 
-        print('selected center at idx {}'.format(center_idx))
+        if verbose:
+            print('selected center at idx {}'.format(center_idx))
         return minimum_error_idx
