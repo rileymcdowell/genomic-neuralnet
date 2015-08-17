@@ -11,7 +11,6 @@ datasets <- c( 'dataCorn_SS_asi.RData'
 
 # Grab the raw alleles.
 load(datasets[1])
-raw_data = X
 
 # Pull out the value of 'y' from each dataset, which is the phenotype.
 load(datasets[1])

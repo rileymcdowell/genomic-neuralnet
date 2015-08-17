@@ -1,9 +1,9 @@
 import joblib
 
-CYCLES = 1
+CYCLES = 16 
 TRAIN_SIZE = 0.9
 # Limit the number of markers required to participate in analysis.
-REQUIRED_MARKERS_PROPORTION = 0.0 
+REQUIRED_MARKERS_PROPORTION = 0.0
 # Set the number of cores to use for processing. 
 CPU_CORES = joblib.cpu_count()
 
