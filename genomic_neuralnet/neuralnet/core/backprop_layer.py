@@ -9,5 +9,3 @@ class BackpropLayer(Layer):
         self.weights = self.weights.reshape((self._num_neurons, self._num_inputs))
         self.biases = np.random.randn(self._num_neurons)
 
-    def activate(self, inputs):
-        raise NotImplementedError()
