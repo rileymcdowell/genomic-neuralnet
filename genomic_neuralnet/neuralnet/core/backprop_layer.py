@@ -7,5 +7,6 @@ class BackpropLayer(Layer):
         # Randomly initialize weights.
         self.weights = np.random.randn(self._num_inputs, self._num_neurons)
         self.weights = self.weights.reshape((self._num_neurons, self._num_inputs))
+        # Only *might* be used later.
         self.biases = np.random.randn(self._num_neurons)
 

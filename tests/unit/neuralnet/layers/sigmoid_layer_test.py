@@ -24,8 +24,6 @@ def test_sigmoid_layer_activates_correctly():
 
     assert np.allclose(outputs, (0.2689414, 0.5), atol=1e-4)
 
-
-
 def test_sigmoid_layer_can_activate_many():
     input_nodes = 3 
     layer_nodes = 2
@@ -56,6 +54,5 @@ def test_sigmoid_layer_can_activate_many():
     outputs = tuple(layer.activate_many(inputs))
 
     assert np.allclose(outputs, [(0.2689414, 0.5), (0.880797, 0.952574)], atol=1e-4)
-
 
 
