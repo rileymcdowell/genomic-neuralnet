@@ -38,8 +38,6 @@ def test_can_create_and_activate_mlp_network_regressor():
     output = network.activate(inputs)
 
     assert np.allclose([output], [0.53782], atol=1e-4) 
-    
-
 
 def test_can_create_and_activate_mlp_network_classifier():
     input_num = 3
@@ -77,5 +75,3 @@ def test_can_create_and_activate_mlp_network_classifier():
 
     assert np.allclose([output], [0.631305], atol=1e-4) 
     
-
-

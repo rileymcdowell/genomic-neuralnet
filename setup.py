@@ -9,7 +9,7 @@ class PyTest(Command):
     def run(self):
         import sys
         import subprocess 
-        errno = subprocess.call([sys.executable, 'runtest.py'])
+        errno = subprocess.call(['py.test', 'tests'])
         raise SystemExit(errno)
 
 setup( name='genomic_neuralnet'

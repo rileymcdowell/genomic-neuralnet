@@ -13,7 +13,7 @@ def get_mlp_network_regressor(num_inputs, num_hidden, num_outputs, apply_bias=Tr
     """
     The mlp network regressor has linear neurons in the output
     layer, and thus has an unrestricted output range, which is
-    well suited for nonlinear regression.
+    well suited for regression.
     """
     hidden_layer = SigmoidLayer(num_inputs, num_hidden, apply_bias)
     output_layer = LinearLayer(num_hidden, num_outputs)

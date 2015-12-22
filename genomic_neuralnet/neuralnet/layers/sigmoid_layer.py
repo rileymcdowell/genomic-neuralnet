@@ -7,7 +7,7 @@ def sigmoid_derivative(x):
 
 class SigmoidLayer(BackpropLayer):
     def __init__(self, num_inputs, num_neurons, apply_bias=True):
-        super(SigmoidLayer, self).__init__(num_inputs, num_neurons)
+        super(SigmoidLayer, self).__init__(num_inputs, num_neurons, rand_stddev=0.1)
         self._apply_bias = apply_bias 
 
     def activate(self, inputs):
