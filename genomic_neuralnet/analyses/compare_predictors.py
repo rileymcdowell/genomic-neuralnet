@@ -9,8 +9,8 @@ from genomic_neuralnet.methods import \
         get_lasso_prediction, get_lr_prediction, \
         get_nn_prediction, get_rr_prediction, \
         get_fast_nn_prediction, get_fast_nn_dom_prediction, \
-        get_nn_dom_prediction, get_rbf_nn_prediction, \
-        get_sgd_prediction
+        get_nn_dom_prediction, get_sgd_prediction, \
+        get_rbf_nn_prediction
 
 optimal_nn = partial(get_nn_prediction, hidden=(2,), weight_decay=0.008)
 optimal_dom = partial(get_nn_dom_prediction, hidden=(2,), weight_decay=0.008)

@@ -17,3 +17,4 @@ statsmodels==0.6.1
 celery==3.1.18
 redis==2.10.3
 fann2==1.0.7
+simplenet==0.0.1

@@ -1,1 +1,0 @@
-from genomic_neuralnet.neuralnet.util.orthogonalizer import orthogonalize_vectors

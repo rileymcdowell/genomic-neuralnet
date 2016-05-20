@@ -5,10 +5,10 @@ from functools import partial
 from genomic_neuralnet.common import run_predictors
 from genomic_neuralnet.methods import \
         get_nn_prediction , get_rbf_nn_prediction, \
-        get_fast_nn_prediction, get_fast_nn_dom_prediction, \
-        get_cascade_nn_prediction
+        get_fast_nn_prediction, get_fast_nn_dom_prediction
 
-optimal_rbf_nn = partial(get_rbf_nn_prediction, hidden=(2,), weight_decay=0)
+
+optimal_rbf_nn = partial(get_rbf_nn_prediction, centers=200, spread=150)
 optimal_fast_nn = partial(get_fast_nn_prediction, hidden=(2,), weight_decay=0)
 optimal_fast_nn_dom = partial(get_fast_nn_dom_prediction, hidden=(2,), weight_decay=0)
 
