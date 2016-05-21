@@ -1,1 +1,2 @@
 from genomic_neuralnet.util.require_true import RequiredValueNotTrueException, require_true
+from genomic_neuralnet.util.neuralnet_config import NeuralnetConfig
