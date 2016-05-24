@@ -47,7 +47,7 @@ def _build_nn(net_config, n_features):
 
     error = tf.reduce_sum(tf.squared_difference(truth, last_output))
 
-    trainer = tf.train.GradientDescentOptimizer(net_config.learning_rate)
+    trainer = tf.train.RMSPropOptimizer(net_config.learning_rate)
     train_func = trainer.minimize(error)
 
     session.run(tf.initialize_all_variables())
@@ -132,7 +132,7 @@ def get_do_net_prediction(train_data, train_truth, test_data, test_truth, net_co
         net_config = NeuralnetConfig()
 
     mms = MinMaxScaler() # Scale output to 0-1.
-    train_y = mms.fit_transform(train_truth)
+    train_y = mms.fit_transform(train_truth[:,np.newaxis])
 
     n_features = train_data.shape[1]
 
@@ -140,7 +140,7 @@ def get_do_net_prediction(train_data, train_truth, test_data, test_truth, net_co
     net_container = _build_nn(net_config, n_features)
 
     # Train the network.
-    _train_net(net_container, net_config, train_data, train_truth, dropout_keep_prob)
+    _train_net(net_container, net_config, train_data, train_y, dropout_keep_prob)
 
     # Unsupervised (test) dataset.
     predicted = _predict(net_container, test_data)

@@ -4,11 +4,11 @@ import time
 import numpy as np
 import itertools
 from genomic_neuralnet.common.base_compare import try_predictor
-from genomic_neuralnet.config import CYCLES, REQUIRED_MARKERS_PROPORTION, CPU_CORES
+from genomic_neuralnet.config import REQUIRED_MARKERS_PROPORTION, CPU_CORES
 from genomic_neuralnet.config import markers, pheno
-from genomic_neuralnet.config import BACKEND, CELERY_BACKEND, JOBLIB_BACKEND, DEBUG_BACKEND 
+from genomic_neuralnet.config import CELERY_BACKEND, JOBLIB_BACKEND, SINGLE_CORE_BACKEND, INIT_CELERY
 
-if BACKEND == CELERY_BACKEND:
+if INIT_CELERY == CELERY_BACKEND:
     try:
         # Set up celery and define tasks.
         from celery import Celery
@@ -44,7 +44,7 @@ def _run_celery(job_params):
     accuracies = [t.get() for t in tasks]
     return accuracies
 
-def run_predictors(prediction_functions):
+def run_predictors(prediction_functions, backend=SINGLE_CORE_BACKEND, cycles=10):
     """
     Runs all prediction functions on the same data in a 
     batch process across the configured number of CPUs. 
@@ -59,20 +59,20 @@ def run_predictors(prediction_functions):
 
     # Set up the parameters for processing.
     pf_idxs = range(len(prediction_functions))
-    job_params = [(clean_markers, pheno, prediction_functions[pf_idx], (idx, pf_idx)) for idx in range(CYCLES) for pf_idx in pf_idxs] 
+    job_params = [(clean_markers, pheno, prediction_functions[pf_idx], (idx, pf_idx)) for idx in range(cycles) for pf_idx in pf_idxs] 
 
-    if BACKEND == JOBLIB_BACKEND:
+    if backend == JOBLIB_BACKEND:
         accuracies = _run_joblib(job_params)
-    elif BACKEND == CELERY_BACKEND:
+    elif backend == CELERY_BACKEND:
         accuracies = _run_celery(job_params)
-    elif BACKEND == DEBUG_BACKEND:
+    elif backend == SINGLE_CORE_BACKEND:
         accuracies = _run_debug(job_params)
     else:
         print('Unsupported Processing Backend')
         sys.exit(1)
         
     accuracies.sort(key=lambda x: x[1][1]) # Sort by prediction function
-    grouped = [accuracies[idx:idx+CYCLES] for idx in range(0, len(accuracies), CYCLES)] # Group by prediction function
+    grouped = [accuracies[idx:idx+cycles] for idx in range(0, len(accuracies), cycles)] # Group by prediction function
     return map(lambda x: map(lambda y: y[0], x), grouped) # Just return the accuracies
     
     return accuracies

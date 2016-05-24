@@ -1,0 +1,2 @@
+hidden,dropout_keep,mean,std_dev
+<genomic_neuralnet.util.neuralnet_config.NeuralnetConfig object at 0x7f24bd1cb990>,0.75,0.41807113305077676,0.1034612511129664

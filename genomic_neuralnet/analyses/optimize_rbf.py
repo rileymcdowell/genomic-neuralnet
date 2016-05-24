@@ -5,7 +5,8 @@ import numpy as np
 
 from functools import partial
 
-from genomic_neuralnet.common import run_predictors 
+from genomic_neuralnet.config import JOBLIB_BACKEND
+from genomic_neuralnet.common import run_predictors
 from genomic_neuralnet.methods import get_rbf_nn_prediction 
 
 # These ranges likely contain the global maximum. Find it. 
@@ -18,7 +19,7 @@ prediction_functions = map(lambda (h, s): partial(get_rbf_nn_prediction, centers
 def main():
     df = pd.DataFrame.from_records(params, columns=['neurons', 'spread'])
 
-    accuracies = run_predictors(prediction_functions)
+    accuracies = run_predictors(prediction_functions, backend=JOBLIB_BACKEND, cycles=5)
 
     means = []
     std_devs = []

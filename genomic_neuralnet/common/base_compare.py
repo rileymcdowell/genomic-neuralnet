@@ -16,7 +16,7 @@ def try_predictor(markers, pheno, prediction_function, id_val=None):
     trait = TRAIT_NAME
 
     good_idxs = pheno.ix[~pheno[trait].isnull()].index.values
-    train_idxs = np.random.choice(good_idxs, size=round(len(good_idxs) * TRAIN_SIZE), replace=False)
+    train_idxs = np.random.choice(good_idxs, size=int(round(len(good_idxs) * TRAIN_SIZE)), replace=False)
     test_idxs = np.setdiff1d(good_idxs, train_idxs)
 
     # Train data

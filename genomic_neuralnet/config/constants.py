@@ -1,6 +1,5 @@
 import joblib
 
-CYCLES = 16 
 TRAIN_SIZE = 0.9
 # Limit the number of markers required to participate in analysis.
 REQUIRED_MARKERS_PROPORTION = 0.0
@@ -16,5 +15,6 @@ USE_ARAC = False # If arac library is installed, we can train networks faster.
 # Pick a processing backend for the modeling.
 CELERY_BACKEND = 'celery'
 JOBLIB_BACKEND = 'joblib'
-DEBUG_BACKEND = 'debug'
-BACKEND = JOBLIB_BACKEND 
+SINGLE_CORE_BACKEND = 'single-core'
+
+INIT_CELERY = False # Must be True to use celery backend.

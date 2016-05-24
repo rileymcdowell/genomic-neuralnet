@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 
 from functools import partial
+from genomic_neuralnet.config import JOBLIB_BACKEND
 from genomic_neuralnet.common import run_predictors
 from genomic_neuralnet.methods import \
         get_brr_prediction, get_en_prediction, \
@@ -46,7 +47,7 @@ prediction_names     = [ 'wdecay_mlp_nn'
 def main():
     df = pd.DataFrame.from_records(map(lambda x: tuple([x]), prediction_names), columns=['method'])
 
-    accuracies = run_predictors(prediction_functions)
+    accuracies = run_predictors(prediction_functions, backend=JOBLIB_BACKEND)
 
     means = []
     std_devs = []

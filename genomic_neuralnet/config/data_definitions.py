@@ -19,6 +19,7 @@ _data_dir = os.path.join(os.path.dirname(__file__), '..', 'data')
 
 # Crossa Maize Yield Data
 TRAIT_NAME = 'ww_yld' # Grain yield, severe stress environment.
+#TRAIT_NAME = 'ss_yld' # Grain yield, severe stress environment.
 _marker_path = os.path.join(_data_dir, 'crossa', 'maize', 'grain_yield', 'genotypes.csv')
 markers = pd.DataFrame.from_csv(_marker_path, index_col=None, sep=',', header=None)
 _pheno_path = os.path.join(_data_dir, 'crossa', 'maize', 'grain_yield', 'phenotypes.csv')

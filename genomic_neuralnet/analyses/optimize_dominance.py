@@ -5,6 +5,7 @@ import numpy as np
 
 from functools import partial
 
+from genomic_neuralnet.config import JOBLIB_BACKEND
 from genomic_neuralnet.common import run_predictors 
 from genomic_neuralnet.methods import get_nn_dom_prediction 
 
@@ -20,7 +21,7 @@ prediction_functions = map(lambda (h, wd): partial(get_nn_dom_prediction, hidden
 def main():
     df = pd.DataFrame.from_records(params, columns=['neurons', 'weight_decay'])
 
-    accuracies = run_predictors(prediction_functions)
+    accuracies = run_predictors(prediction_functions, backend=JOBLIB_BACKEND)
 
     means = []
     std_devs = []

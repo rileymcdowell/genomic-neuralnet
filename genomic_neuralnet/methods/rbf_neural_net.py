@@ -21,9 +21,12 @@ def _train_nn(rbf_net, train_data, train_truth, centers):
     rbf_trainer.train_with_best_centers(train_data, train_truth[:,np.newaxis], centers)
 
 def get_rbf_nn_prediction(train_data, train_truth, test_data, test_truth, centers=8, spread=1): 
+    train_truth = train_truth[:,np.newaxis]
+    test_truth = test_truth[:,np.newaxis]
+
     scaler = StandardScaler()
-    train_truth = scaler.fit_transform(train_truth)
-    test_truth = scaler.transform(test_truth)
+    train_truth = scaler.fit_transform(train_truth).ravel()
+    test_truth = scaler.transform(test_truth).ravel()
 
     net = _get_nn(train_data.shape[1], spread=spread)
 
