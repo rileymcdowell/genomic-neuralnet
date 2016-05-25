@@ -10,12 +10,12 @@ from genomic_neuralnet.util import NeuralnetConfig
 from genomic_neuralnet.common import run_predictors 
 from genomic_neuralnet.methods import get_do_net_prediction 
 
-CYCLES = 5 
+CYCLES = 1
 
 def get_config(hidden_layers):
     config = NeuralnetConfig()
     config.learning_rate = 0.001
-    config.continue_epochs = 200
+    config.continue_epochs = 1000
     config.hidden_layers = (hidden_layers,)
     return config
 

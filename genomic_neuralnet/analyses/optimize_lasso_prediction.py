@@ -11,6 +11,7 @@ from genomic_neuralnet.methods import \
 
 prediction_functions = []
 alphas = list(np.arange(0.01, 1.01,0.01))
+
 for x in alphas:
     prediction_functions.append(partial(get_lasso_prediction, alpha=x))
 

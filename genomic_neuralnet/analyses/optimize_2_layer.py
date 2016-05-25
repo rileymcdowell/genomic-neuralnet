@@ -6,17 +6,21 @@ import pandas as pd
 from joblib import delayed, Parallel, cpu_count
 from functools import partial
 
+from genomic_neuralnet.config import JOBLIB_BACKEND
 from genomic_neuralnet.common import run_predictors
 from genomic_neuralnet.methods import get_nn_prediction
 
+CYCLES = 5
 
 # 2 hidden layers, try all combinations less than 5x5.
 hidden_layers = [(x,y) for x in range(1,5) for y in range(1,5)]
+hidden_layers = [(2,2)]
+
 prediction_functions = [partial(get_nn_prediction, hidden=h) for h in hidden_layers]
 prediction_names = ['2 layer nn {}'.format(h) for h in hidden_layers]
 
 def main():
-    accuracies = run_predictors(prediction_functions)
+    accuracies = run_predictors(prediction_functions, backend=JOBLIB_BACKEND, cycles=CYCLES)
 
     print('')
     for name, accuracy_arr in zip(prediction_names, accuracies):

@@ -7,10 +7,10 @@ REQUIRED_MARKERS_PROPORTION = 0.0
 CPU_CORES = joblib.cpu_count()
 
 # Neuralnet Settings
-MAX_EPOCHS = 10000 # If TRY_CONVERGENCE is False, this is also the minimum # epochs.
+MAX_EPOCHS = 1000 # If TRY_CONVERGENCE is False, this is also the minimum # epochs.
 CONTINUE_EPOCHS = 25 # Ignored if TRY_CONVERGENCE is False
 TRY_CONVERGENCE = True 
-USE_ARAC = False # If arac library is installed, we can train networks faster.
+USE_ARAC = True # If arac library is installed, we can train networks faster.
 
 # Pick a processing backend for the modeling.
 CELERY_BACKEND = 'celery'
