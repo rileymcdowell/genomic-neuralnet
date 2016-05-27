@@ -69,4 +69,5 @@ def get_fast_nn_prediction(train_data, train_truth, test_data, test_truth, hidde
 
     predicted = scaler.inverse_transform(np.array(out))
 
+    print(predicted)
     return predicted.ravel()
