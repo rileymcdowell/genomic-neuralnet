@@ -1,0 +1,56 @@
+Test,age,trait,h2,Description
+
+canker,1,LesionUF,0.2828,Canker Lesion Length 
+
+nassau,1,HT,0.1219,Total Height (cm)
+
+nassau,2,HT,0.2715,Total Height (cm)
+
+nassau,3,HT,0.2734,Total Height (cm)
+
+nassau,6,HT,0.3117,Total Height (cm)
+
+nassau,3,DBH,0.2648,Diameter at Breast Height (cm)
+
+nassau,4,DBH,0.2667,Diameter at Breast Height (cm)
+
+nassau,6,DBH,0.3086,Diameter at Breast Height (cm)
+
+nassau,2,CWAL,0.2133,Crown Width Along the bed (cm)
+
+nassau,6,CWAL,0.2743,Crown Width Along the bed (cm)
+
+nassau,2,CWAC,0.2199,Crown Width Across the bed (cm)
+
+nassau,6,CWAC,0.4494,Crown Width Across the bed (cm)
+
+nassau,4,HTLC,0.215,Height live crown (cm)
+
+nassau,6,BLC,0.349,Base live crown (meter)
+
+nassau,6,BD_m,0.1463,Average Branch Diameter (cm)
+
+nassau,6,BA_m,0.3257,Average Branch Angle (degree)
+
+rootnum,1,rootnum,0.0731,Number of roots
+
+rootnum,1,rootnumbin,0.0983,Presence or Absence of roots
+
+rust,1,Length,0.1791,Length of Rust Lesion
+
+rust,1,Width,0.1714,Width of Rust Lesion
+
+rust,1,gall_vol,0.1217,Volume of Rust Lesion
+
+rust,1,rustbin,0.2055,Presence or Absence of Rust
+
+woodall,5,stiffnessTree,0.3658,Tree Stiffness
+
+woodall,4,c5c6,0.1415,Content of Carbon C5 and C6
+
+woodall,4,lignin,0.1139,Lignin Content
+
+woodall,4,density,0.09,Wood Density
+
+woodall,4,lateWood%4,0.1664,Late Wood percentage at age 4
+
