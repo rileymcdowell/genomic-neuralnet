@@ -54,8 +54,8 @@ def _write_training_file(train_data, train_truth):
 @in_temp_dir
 def get_fast_nn_prediction(train_data, train_truth, test_data, test_truth, hidden=(5,), weight_decay=0.): 
     scaler = MinMaxScaler(feature_range = (-1, 1))
-    train_truth = scaler.fit_transform(train_truth)
-    test_truth = scaler.transform(test_truth)
+    train_truth = scaler.fit_transform(train_truth[:,np.newaxis]).ravel()
+    test_truth = scaler.transform(test_truth[:,np.newaxis]).ravel()
 
     net = _get_nn(train_data.shape[1], hidden)
 
@@ -69,5 +69,4 @@ def get_fast_nn_prediction(train_data, train_truth, test_data, test_truth, hidde
 
     predicted = scaler.inverse_transform(np.array(out))
 
-    print(predicted)
     return predicted.ravel()

@@ -3,8 +3,9 @@ import sys
 import time
 import numpy as np
 import itertools
+
 from genomic_neuralnet.common.base_compare import try_predictor
-from genomic_neuralnet.config import REQUIRED_MARKERS_PROPORTION, CPU_CORES
+from genomic_neuralnet.config import REQUIRED_MARKERS_PROPORTION, CPU_CORES, NUM_FOLDS
 from genomic_neuralnet.config import markers, pheno
 from genomic_neuralnet.config import CELERY_BACKEND, JOBLIB_BACKEND, SINGLE_CORE_BACKEND, INIT_CELERY
 
@@ -19,7 +20,7 @@ if INIT_CELERY == CELERY_BACKEND:
 
 def _run_joblib(job_params):
     from joblib import delayed, Parallel
-    accuracies = Parallel(n_jobs=CPU_CORES)(delayed(try_predictor)(*x) for x in job_params) 
+    accuracies = Parallel(n_jobs=CPU_CORES)(delayed(try_predictor)(*x) for x in job_params)
     return accuracies
 
 def _run_debug(job_params):
@@ -28,7 +29,6 @@ def _run_debug(job_params):
     for args in job_params:
         accuracies.append(try_predictor(*args))
     return accuracies
-
 
 def _run_celery(job_params):
     tasks = [celery_try_predictor.delay(*x) for x in job_params]
@@ -44,7 +44,7 @@ def _run_celery(job_params):
     accuracies = [t.get() for t in tasks]
     return accuracies
 
-def run_predictors(prediction_functions, backend=SINGLE_CORE_BACKEND, cycles=10):
+def run_predictors(prediction_functions, backend=SINGLE_CORE_BACKEND, random_seed=1):
     """
     Runs all prediction functions on the same data in a 
     batch process across the configured number of CPUs. 
@@ -52,14 +52,22 @@ def run_predictors(prediction_functions, backend=SINGLE_CORE_BACKEND, cycles=10)
     ordered by function.
     """
 
-    # Remove markers with many missing values by filtering on the NOT of the columns with too many nulls.
-    clean_markers = markers.ix[~(markers.T.isnull().sum() > len(markers) * (1 - REQUIRED_MARKERS_PROPORTION))]
+    # Remove markers with many missing values.
+    marker_missing_count = markers.T.isnull().sum()
+    max_missing_allowed = 1 - REQUIRED_MARKERS_PROPORTION
+    clean_markers = markers.ix[~(marker_missing_count > len(markers) * max_missing_allowed)]
     # Impute missing values with the mean for that column
     clean_markers = markers.fillna(markers.mean())
 
     # Set up the parameters for processing.
-    pf_idxs = range(len(prediction_functions))
-    job_params = [(clean_markers, pheno, prediction_functions[pf_idx], (idx, pf_idx)) for idx in range(cycles) for pf_idx in pf_idxs] 
+    pred_func_idxs = range(len(prediction_functions))
+    job_params = []
+    for prediction_function_idx in pred_func_idxs:
+        for fold_idx in range(NUM_FOLDS):
+            identifier = (fold_idx, prediction_function_idx)
+            prediction_function = prediction_functions[prediction_function_idx]
+            params = (clean_markers, pheno, prediction_function, random_seed, identifier)
+            job_params.append(params)
 
     if backend == JOBLIB_BACKEND:
         accuracies = _run_joblib(job_params)
@@ -72,7 +80,7 @@ def run_predictors(prediction_functions, backend=SINGLE_CORE_BACKEND, cycles=10)
         sys.exit(1)
         
     accuracies.sort(key=lambda x: x[1][1]) # Sort by prediction function
-    grouped = [accuracies[idx:idx+cycles] for idx in range(0, len(accuracies), cycles)] # Group by prediction function
+    grouped = [accuracies[idx:idx+NUM_FOLDS] for idx in range(0, len(accuracies), NUM_FOLDS)] # Group by prediction function
     return map(lambda x: map(lambda y: y[0], x), grouped) # Just return the accuracies
     
     return accuracies

@@ -5,6 +5,8 @@ TRAIN_SIZE = 0.9
 REQUIRED_MARKERS_PROPORTION = 0.0
 # Set the number of cores to use for processing. 
 CPU_CORES = joblib.cpu_count()
+# The number of folds to use for cross-validation.
+NUM_FOLDS = 10
 
 # Neuralnet Settings
 MAX_EPOCHS = 1000 # If TRY_CONVERGENCE is False, this is also the minimum # epochs.

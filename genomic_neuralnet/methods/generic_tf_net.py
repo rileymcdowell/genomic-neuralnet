@@ -1,10 +1,16 @@
 from __future__ import print_function
 
+import os
 import numpy as np
 import tensorflow as tf
 
 from genomic_neuralnet.util import NeuralnetConfig
 from sklearn.preprocessing import MinMaxScaler 
+
+_this_dir = os.path.dirname(__file__)
+LOG_DIR = os.path.join(_this_dir, '..', '..', 'tf_log_dir')
+
+EPSILON = 1e-4
 
 class NeuralNetContainer(object):
     def __init__(self): 
@@ -17,6 +23,7 @@ class NeuralNetContainer(object):
         self.weight_decay = None
         self.keep_prob = None
         self.writer = None
+        self.learning_rate = None
 
 def _random_matrix(shape, name=None):
     v = tf.Variable(tf.random_normal(shape, mean=0, stddev=0.5), name=name)
@@ -27,8 +34,11 @@ def _build_nn(net_config, n_features):
 
     x = tf.placeholder(tf.float32, shape=(None, n_features))
     truth = tf.placeholder(tf.float32, shape=(None, 1))
+
+    # Parameters.
     weight_decay = tf.placeholder(tf.float32)
     keep_prob = tf.placeholder(tf.float32)
+    learning_rate = tf.placeholder(tf.float32)
 
     last_output = x
     last_n_nodes = n_features
@@ -42,7 +52,7 @@ def _build_nn(net_config, n_features):
             weight_count = tf.reduce_prod(tf.shape(w), keep_dims=True)
             all_weights.append(tf.reshape(w, weight_count))
 
-            inputs = tf.add(tf.matmul(last_output, w), b)
+            inputs = tf.nn.bias_add(tf.matmul(last_output, w), b)
             activations = tf.mul(tf.sub(tf.sigmoid(inputs), 0.5), 2)
 
             # Apply dropout.
@@ -61,10 +71,9 @@ def _build_nn(net_config, n_features):
         #activations = tf.clip_by_value(inputs, -1, 1) # Linear output layer, clipped.
         activations = inputs
 
-
     final_out = activations 
 
-    network_error = tf.reduce_sum(tf.squared_difference(truth, final_out))
+    network_error = tf.reduce_mean(tf.squared_difference(truth, final_out))
 
     all_weights = tf.concat(0, all_weights)
     weight_error = tf.nn.l2_loss(all_weights)
@@ -72,13 +81,13 @@ def _build_nn(net_config, n_features):
     # Error term is network error plus weight error.
     error = tf.add(network_error , tf.mul(weight_decay, weight_error))
 
-    trainer = tf.train.RMSPropOptimizer(net_config.learning_rate)
+    trainer = tf.train.AdagradOptimizer(learning_rate)
     train_func = trainer.minimize(error)
 
     session.run(tf.initialize_all_variables())
 
     # Write the graph.
-    writer = tf.train.SummaryWriter('../../tf_log_dir', graph=session.graph)
+    writer = tf.train.SummaryWriter(LOG_DIR, graph=session.graph)
 
     # Build a container to save the useful parts of the network.
     container = NeuralNetContainer()
@@ -92,6 +101,7 @@ def _build_nn(net_config, n_features):
     container.error_func = error
     container.weight_decay = weight_decay
     container.keep_prob = keep_prob
+    container.learning_rate = learning_rate
 
     return container 
 
@@ -113,9 +123,12 @@ def _train_net(container, net_config, X, y, weight_decay_lambda, dropout_keep_pr
     network_error = container.network_error
     weight_decay = container.weight_decay
     keep_prob = container.keep_prob
+    learning_rate = container.learning_rate
 
+    current_learning_rate = net_config.initial_learning_rate 
     min_error = np.inf
     iters_without_decrease = 0
+    last_error = min_error
     for epoch_idx in range(0, net_config.max_epochs):
 
         # By doing random mini-batching, turn this into stochastic gradient descent.
@@ -126,27 +139,42 @@ def _train_net(container, net_config, X, y, weight_decay_lambda, dropout_keep_pr
 
             feed_dict = { x: x_sample
                         , truth: y_sample
-                        , weight_decay:weight_decay_lambda
-                        , keep_prob:dropout_keep_prob
+                        , weight_decay: weight_decay_lambda
+                        , keep_prob: dropout_keep_prob
+                        , learning_rate: current_learning_rate
                         }
             sess.run(train_func, feed_dict=feed_dict)
 
+        # Calculate end-of-epoch error.
+        err = sess.run(error, feed_dict)
         feed_dict = { x: X
                     , truth: y
                     , keep_prob: 1.0
                     , weight_decay: weight_decay_lambda
                     }
-        if epoch_idx % 100 == 0:
-            err = sess.run(error, feed_dict)
-            print('Epoch {}. Network Sum Squared Error = {}'.format(epoch_idx, err))
-            
+
+        # Maybe report Network MSE.
+        if epoch_idx % net_config.report_every == 0:
+            print('Epoch {}. Network MSE = {}'.format(epoch_idx, err))
+            print(current_learning_rate)
+
+        if net_config.active_learning_rate:
+            # Update the learning rate.
+            if err < last_error:
+                current_learning_rate *= net_config.learning_rate_multiplier 
+            else:
+                new_rate = current_learning_rate / net_config.learning_rate_divisor
+                current_learning_rate = np.max([new_rate, EPSILON])
+
+        # Reset error counter.
+        last_error = err
 
         if not net_config.try_convergence:
             continue
         else:
             # If we're going to try to converge, we need to
             # evaluate the current error including weight decay.
-            #feed_dict[weight_decay] = weight_decay_lambda
+            feed_dict[weight_decay] = weight_decay_lambda
             err = sess.run(error, feed_dict)
 
         if err < min_error:
@@ -158,7 +186,7 @@ def _train_net(container, net_config, X, y, weight_decay_lambda, dropout_keep_pr
         if iters_without_decrease > net_config.continue_epochs:
             err = sess.run(error, feed_dict)
             print('Convergence threshold reached. Training stopped.')
-            return # Break out early if it seems like we've converged.
+            break# Break out early if it seems like we've converged.
 
 def _predict(container, X):
     sess = container.session
