@@ -12,3 +12,4 @@ Key to raw data:
 # TODO: Write this.
 
 genotypes.csv and phenotypes.csv generated from raw data files included in the directory.
+collect\_data.py automates the creation of the genotypes.csv and phenotypes.csv files.
