@@ -16,6 +16,7 @@ def main():
     geno_df = geno_df.astype(float) 
     geno_df = geno_df.replace(to_replace=-9, value=np.NaN)
     geno_df = geno_df - 1 # Change to scale [-1, 1]
+    geno_df = geno_df.T # Rows as markers.
     geno_df.to_csv('genotypes.csv', index=None, header=False, na_rep='NaN', float_format='%1.0f')
 
     last_pheno_df = None

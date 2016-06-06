@@ -38,12 +38,11 @@ def main():
         phenos = df[PHENO_COLS]
         geno_cols = np.array(list(set(df.columns) - set(PHENO_COLS)))
         geno_cols = np.sort(geno_cols)
-        print('File{}'.format(file_number), len(geno_cols))
         genos = df[geno_cols] - 1 # Convert from [0,1,2] to [-1, 0, 1]
-        stuff[file_number] = geno_cols
+        genos = genos.T # Rows are Markers.
 
         # Create the output directory.
-        output_dir = os.path.join(_this_dir, 'File{}'.format(file_number))
+        output_dir = os.path.join(_this_dir, 'FileS{}'.format(file_number))
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir)
 
