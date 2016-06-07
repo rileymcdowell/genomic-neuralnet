@@ -4,6 +4,7 @@ import os
 import numpy as np
 import tensorflow as tf
 
+from datetime import datetime
 from genomic_neuralnet.util import NeuralnetConfig
 from sklearn.preprocessing import MinMaxScaler 
 
@@ -30,21 +31,26 @@ def _random_matrix(shape, name=None):
     return v
 
 def _build_nn(net_config, n_features):
+    tf.reset_default_graph() # Clear any old runs.
     session = tf.Session()
 
-    x = tf.placeholder(tf.float32, shape=(None, n_features))
-    truth = tf.placeholder(tf.float32, shape=(None, 1))
+    with tf.name_scope('Input'):
+        x = tf.placeholder(tf.float32, shape=(None, n_features), name='x')
+
+    with tf.name_scope('DesiredOutput'):
+        truth = tf.placeholder(tf.float32, shape=(None, 1), name='truth')
 
     # Parameters.
-    weight_decay = tf.placeholder(tf.float32)
-    keep_prob = tf.placeholder(tf.float32)
-    learning_rate = tf.placeholder(tf.float32)
+    with tf.name_scope('Parameters'):
+        weight_decay = tf.placeholder(tf.float32, name='weight_decay', shape=())
+        keep_prob = tf.placeholder(tf.float32, name='keep_prob', shape=())
+        learning_rate = tf.placeholder(tf.float32, name='learning_rate', shape=())
 
     last_output = x
     last_n_nodes = n_features
     all_weights = []
     for lidx, n_nodes in enumerate(net_config.hidden_layers):
-        with tf.name_scope('Layer{}'.format(lidx)):
+        with tf.name_scope('HiddenLayer{}'.format(lidx)):
             w = _random_matrix((last_n_nodes, n_nodes), name='W{}'.format(lidx))
             b = _random_matrix((n_nodes,), name='B{}'.format(lidx))
 
@@ -61,7 +67,7 @@ def _build_nn(net_config, n_features):
             last_n_nodes = n_nodes
             last_output = activations
 
-    with tf.name_scope('Output'):
+    with tf.name_scope('OutputLayer'):
         w = _random_matrix((last_n_nodes, 1), name='OutputWeights')
         weight_count = tf.reduce_prod(tf.shape(w), keep_dims=True)
         all_weights.append(tf.reshape(w, weight_count))
@@ -73,25 +79,40 @@ def _build_nn(net_config, n_features):
 
     final_out = activations 
 
-    network_error = tf.reduce_mean(tf.squared_difference(truth, final_out))
+    with tf.name_scope('ErrorCalc'):
+        network_error = tf.reduce_mean(tf.squared_difference(truth, final_out))
+        all_weights_flat = tf.concat(0, all_weights)
+        weight_error = tf.nn.l2_loss(all_weights_flat)
 
-    all_weights = tf.concat(0, all_weights)
-    weight_error = tf.nn.l2_loss(all_weights)
+        # Error term is network error plus weight error.
+        error = tf.add(network_error , tf.mul(weight_decay, weight_error))
 
-    # Error term is network error plus weight error.
-    error = tf.add(network_error , tf.mul(weight_decay, weight_error))
+    with tf.name_scope('Trainer'):
+        trainer = tf.train.GradientDescentOptimizer(learning_rate)
+        train_func = trainer.minimize(error)
 
-    trainer = tf.train.AdagradOptimizer(learning_rate)
-    train_func = trainer.minimize(error)
+    with tf.name_scope('Summaries'):
+        tf.scalar_summary('Penalized Total Error', error)
+        for idx, weight in enumerate(all_weights):
+            tf.histogram_summary('HiddenWeight{}'.format(idx), weight)
+        merged = tf.merge_all_summaries()
 
+    # Prepare the logging directory. 
+    run_time_str = datetime.now().strftime('%Y-%m-%dT%H-%M-%S')
+    run_log_dir = os.path.join(LOG_DIR, run_time_str)
+    if not os.path.exists(run_log_dir):
+        os.makedirs(run_log_dir)
+
+    # Make a summary writer.
+    writer = tf.train.SummaryWriter(run_log_dir, graph=session.graph)
+
+    # Initialize all variables so far.
     session.run(tf.initialize_all_variables())
-
-    # Write the graph.
-    writer = tf.train.SummaryWriter(LOG_DIR, graph=session.graph)
 
     # Build a container to save the useful parts of the network.
     container = NeuralNetContainer()
     container.writer = writer
+    container.merged = merged
     container.session = session
     container.output_func = final_out
     container.train_func = train_func
@@ -115,6 +136,8 @@ def _train_net(container, net_config, X, y, weight_decay_lambda, dropout_keep_pr
 
     """
     sess = container.session
+    writer = container.writer
+    merged = container.merged
     train_func = container.train_func
     x = container.x_var
     truth = container.truth_var
@@ -146,17 +169,27 @@ def _train_net(container, net_config, X, y, weight_decay_lambda, dropout_keep_pr
             sess.run(train_func, feed_dict=feed_dict)
 
         # Calculate end-of-epoch error.
-        err = sess.run(error, feed_dict)
         feed_dict = { x: X
                     , truth: y
                     , keep_prob: 1.0
                     , weight_decay: weight_decay_lambda
                     }
+        try:
+            summary, err = sess.run([merged, error], feed_dict)
+        except Exception as e:
+            for idx in feed_dict:
+                print(idx)
+                if isinstance(feed_dict[idx], np.ndarray):
+                    print(feed_dict[idx].shape)
+                else:
+                    print('float')
+            raise e
+        writer.add_summary(summary, epoch_idx)
 
         # Maybe report Network MSE.
         if epoch_idx % net_config.report_every == 0:
             print('Epoch {}. Network MSE = {}'.format(epoch_idx, err))
-            print(current_learning_rate)
+            print('Learning rate: {}'.format(current_learning_rate))
 
         if net_config.active_learning_rate:
             # Update the learning rate.

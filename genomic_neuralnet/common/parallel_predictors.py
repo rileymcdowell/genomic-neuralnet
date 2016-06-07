@@ -5,15 +5,21 @@ import numpy as np
 import itertools
 
 from genomic_neuralnet.common.base_compare import try_predictor
-from genomic_neuralnet.config import REQUIRED_MARKERS_PROPORTION, CPU_CORES, NUM_FOLDS
-from genomic_neuralnet.config import markers, pheno
-from genomic_neuralnet.config import CELERY_BACKEND, JOBLIB_BACKEND, SINGLE_CORE_BACKEND, INIT_CELERY
+from genomic_neuralnet.config import REQUIRED_MARKER_CALL_PROPORTION, \
+                                     REQUIRED_MARKERS_PER_SAMPLE_PROP
+from genomic_neuralnet.config import CPU_CORES, NUM_FOLDS
+from genomic_neuralnet.config import markers, pheno, TRAIT_NAME
+from genomic_neuralnet.config import CELERY_BACKEND, JOBLIB_BACKEND, \
+                                     SINGLE_CORE_BACKEND, INIT_CELERY
 
 if INIT_CELERY == CELERY_BACKEND:
     try:
         # Set up celery and define tasks.
         from celery import Celery
-        app = Celery('parallel_predictors', backend='redis://localhost', broker='amqp://guest@localhost//')
+        name = 'parallel_predictors'
+        backend = 'redis://localhost'
+        broker = 'amqp://guest@localhost//'
+        app = Celery(name, backend=backend, broker=broker)
         celery_try_predictor = app.task(try_predictor)
     except:
         pass
@@ -52,12 +58,33 @@ def run_predictors(prediction_functions, backend=SINGLE_CORE_BACKEND, random_see
     ordered by function.
     """
 
-    # Remove markers with many missing values.
-    marker_missing_count = markers.T.isnull().sum()
-    max_missing_allowed = 1 - REQUIRED_MARKERS_PROPORTION
-    clean_markers = markers.ix[~(marker_missing_count > len(markers) * max_missing_allowed)]
-    # Impute missing values with the mean for that column
-    clean_markers = markers.fillna(markers.mean())
+    # Remove missing phenotypic values from both datasets.
+    has_trait_data = pheno[TRAIT_NAME].notnull()
+    clean_pheno = pheno[has_trait_data][[TRAIT_NAME]].copy(deep=True)
+    clean_markers = markers.drop(markers.columns[~has_trait_data], axis=1)
+
+    # Remove samples with many missing marker calls.
+    sample_missing_count = clean_markers.isnull().sum()
+    num_markers = len(clean_markers)
+    max_missing_allowed = 1. - REQUIRED_MARKERS_PER_SAMPLE_PROP
+    required_markers = int(np.ceil(num_markers * max_missing_allowed))
+    bad_samples = (sample_missing_count > (num_markers * max_missing_allowed))
+    clean_markers = clean_markers.drop(clean_markers.columns[bad_samples], axis=1)
+    
+    # Remove markers with many missing values calls.
+    marker_missing_count = clean_markers.T.isnull().sum()
+    num_samples = len(clean_markers.columns)
+    max_missing_allowed = 1. - REQUIRED_MARKER_CALL_PROPORTION
+    required_samples = int(np.ceil(num_samples * max_missing_allowed))
+    bad_markers = (marker_missing_count > (num_samples * max_missing_allowed))
+    clean_markers = clean_markers[~bad_markers]
+
+    # Impute missing values with the mean for that column.
+    clean_markers = clean_markers.fillna(clean_markers.mean())
+
+    # Reset all indices to avoid future indexing loc/iloc confusion.
+    clean_pheno = clean_pheno.reset_index(drop=True)
+    clean_markers = clean_markers.reset_index(drop=True)
 
     # Set up the parameters for processing.
     pred_func_idxs = range(len(prediction_functions))
@@ -66,7 +93,7 @@ def run_predictors(prediction_functions, backend=SINGLE_CORE_BACKEND, random_see
         for fold_idx in range(NUM_FOLDS):
             identifier = (fold_idx, prediction_function_idx)
             prediction_function = prediction_functions[prediction_function_idx]
-            params = (clean_markers, pheno, prediction_function, random_seed, identifier)
+            params = (clean_markers, clean_pheno, prediction_function, random_seed, identifier)
             job_params.append(params)
 
     if backend == JOBLIB_BACKEND:

@@ -1,8 +1,8 @@
 from genomic_neuralnet.config.constants import \
-        CPU_CORES,  REQUIRED_MARKERS_PROPORTION, \
-        TRAIN_SIZE, MAX_EPOCHS, CONTINUE_EPOCHS, \
-        TRY_CONVERGENCE, USE_ARAC, INIT_CELERY, \
+        CPU_CORES,  REQUIRED_MARKER_CALL_PROPORTION, \
+        TRAIN_SIZE, INIT_CELERY, \
         CELERY_BACKEND, JOBLIB_BACKEND, SINGLE_CORE_BACKEND, \
-        NUM_FOLDS
+        NUM_FOLDS, REQUIRED_MARKERS_PER_SAMPLE_PROP, \
+        TRY_CONVERGENCE, MAX_EPOCHS, CONTINUE_EPOCHS, USE_ARAC
 from genomic_neuralnet.config.data_definitions import \
         markers, pheno, TRAIT_NAME

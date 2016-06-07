@@ -5,9 +5,9 @@ from genomic_neuralnet.config import MAX_EPOCHS, CONTINUE_EPOCHS, TRY_CONVERGENC
 from genomic_neuralnet.common.in_temp_dir import in_temp_dir 
 from fann2 import libfann
 
-_LEARNING_RATE = 0.01
+_LEARNING_RATE = 0.001
 _LEARNING_MOMENTUM = 0.5
-_ITERATIONS_BETWEEN_REPORTS = 1000
+_ITERATIONS_BETWEEN_REPORTS = 100
 _DESIRED_ERROR = 0 # If 0, always train until max epochs.
 
 _TRAIN_FILE = './train.data'
@@ -22,8 +22,8 @@ def _get_nn(inputs, hidden):
     ann.set_learning_rate(_LEARNING_RATE)
     ann.set_activation_function_hidden(libfann.SIGMOID_SYMMETRIC)
     ann.set_activation_function_output(libfann.LINEAR_PIECE_SYMMETRIC)
-    ann.set_training_algorithm(libfann.TRAIN_RPROP)
-    ann.set_rprop_delta_zero(1e-6)
+    ann.set_training_algorithm(libfann.TRAIN_INCREMENTAL)
+    #ann.set_rprop_delta_zero(1e-6)
     return ann
 
 def _train_nn(neuralnet, train_data, train_truth, weight_decay):
