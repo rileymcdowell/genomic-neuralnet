@@ -8,9 +8,9 @@ from genomic_neuralnet.common.base_compare import try_predictor
 from genomic_neuralnet.config import REQUIRED_MARKER_CALL_PROPORTION, \
                                      REQUIRED_MARKERS_PER_SAMPLE_PROP
 from genomic_neuralnet.config import CPU_CORES, NUM_FOLDS
-from genomic_neuralnet.config import markers, pheno, TRAIT_NAME
 from genomic_neuralnet.config import CELERY_BACKEND, JOBLIB_BACKEND, \
                                      SINGLE_CORE_BACKEND, INIT_CELERY
+from genomic_neuralnet.util import get_markers_and_pheno
 
 if INIT_CELERY == CELERY_BACKEND:
     try:
@@ -57,10 +57,11 @@ def run_predictors(prediction_functions, backend=SINGLE_CORE_BACKEND, random_see
     Returns the accuracies of the functions as list of arrays
     ordered by function.
     """
+    markers, pheno = get_markers_and_pheno()
 
     # Remove missing phenotypic values from both datasets.
-    has_trait_data = pheno[TRAIT_NAME].notnull()
-    clean_pheno = pheno[has_trait_data][[TRAIT_NAME]].copy(deep=True)
+    has_trait_data = pheno.notnull()
+    clean_pheno = pheno[has_trait_data].copy(deep=True)
     clean_markers = markers.drop(markers.columns[~has_trait_data], axis=1)
 
     # Remove samples with many missing marker calls.

@@ -3,7 +3,7 @@ import sys
 import numpy as np
 import scipy.stats as sps
 
-from genomic_neuralnet.config import TRAIN_SIZE, TRAIT_NAME, NUM_FOLDS
+from genomic_neuralnet.config import TRAIN_SIZE, NUM_FOLDS
 
 def try_predictor(markers, pheno, prediction_function, random_seed, id_val=None):
     """
@@ -14,13 +14,10 @@ def try_predictor(markers, pheno, prediction_function, random_seed, id_val=None)
     # Re-seed the generator.
     np.random.seed(random_seed)
      
-    trait = TRAIT_NAME
-
     # Grab the fold to be left out for this iteration.
     fold_idx, _ = id_val 
 
-    # Pre-Filter data that is missing phenotypic measurements for
-    # this trait.
+    # Grab indexes of all of the phenotypic measurements.
     indexes = pheno.index.values.copy()
 
     # Randomize the order of the index data (in-place).
@@ -37,11 +34,11 @@ def try_predictor(markers, pheno, prediction_function, random_seed, id_val=None)
 
     # Train data
     train_data = markers.iloc[:,in_sample_idxs].T.values
-    train_truth = pheno[trait].iloc[in_sample_idxs].values
+    train_truth = pheno.iloc[in_sample_idxs].values
 
     # Test data
     test_data = markers.iloc[:,out_of_sample_idxs].T.values
-    test_truth = pheno[trait].iloc[out_of_sample_idxs].values
+    test_truth = pheno.iloc[out_of_sample_idxs].values
      
     predicted = prediction_function(train_data, train_truth, test_data, test_truth)
     accuracy = sps.stats.pearsonr(predicted, test_truth)[0]
