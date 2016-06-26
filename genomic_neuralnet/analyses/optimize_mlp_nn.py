@@ -8,18 +8,16 @@ from genomic_neuralnet.util import get_is_on_gpu
 
 def main():
     hidden_size = map(lambda x: tuple([x]), (1, 2, 4, 8, 16, 32, 64, 128, 256, 512))
-    weight_decay = (1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1)
     params = { 'hidden': hidden_size
-             , 'weight_decay': weight_decay
              , 'batch_size': (100,)
-             , 'epochs': (1000,)
+             , 'epochs'    : (250,)
              }
 
     backend = JOBLIB_BACKEND
     if get_is_on_gpu():
         backend = SINGLE_CORE_BACKEND
 
-    run_optimization(get_net_prediction, params, 'optimal_wdnn.shelf', backend=backend)
+    run_optimization(get_net_prediction, params, 'optimal_nn.shelf', backend=backend)
 
 if __name__ == '__main__':
     main()

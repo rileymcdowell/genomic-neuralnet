@@ -21,3 +21,4 @@ simplenet==0.0.1
 xlrd>=0.9.4
 parse>=1.6.6
 bz2file>=0.98
+Keras>=1.0.4

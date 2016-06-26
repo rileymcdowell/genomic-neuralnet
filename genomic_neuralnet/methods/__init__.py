@@ -10,7 +10,5 @@ from genomic_neuralnet.methods.rbf_neural_net import get_rbf_nn_prediction
 from genomic_neuralnet.methods.neural_net_dominance import get_nn_dom_prediction
 from genomic_neuralnet.methods.neural_net_fann import get_fast_nn_prediction
 from genomic_neuralnet.methods.neural_net_dominance_fast import get_fast_nn_dom_prediction
-from genomic_neuralnet.methods.sgd_regression import get_sgd_prediction
-from genomic_neuralnet.methods.dropout_net import get_do_net_prediction
 
-from genomic_neuralnet.methods.tf_neural_net import get_tfnet_pred
+from genomic_neuralnet.methods.keras_neural_net import get_net_prediction

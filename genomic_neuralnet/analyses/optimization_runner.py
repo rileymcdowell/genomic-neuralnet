@@ -44,6 +44,11 @@ def run_optimization(function, params, shelf_name, backend=SINGLE_CORE_BACKEND):
     shelf['|'.join(('species', 'trait'))] = df
     shelf.close()
 
+    print('Best Parameters Were:')
+
+    max_mean = np.argmax(df['mean'])
+    print(df.iloc[max_mean])
+
     print('Done.')
 
 

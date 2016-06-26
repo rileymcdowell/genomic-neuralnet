@@ -39,6 +39,9 @@ def try_predictor(markers, pheno, prediction_function, random_seed, id_val=None)
     # Test data
     test_data = markers.iloc[:,out_of_sample_idxs].T.values
     test_truth = pheno.iloc[out_of_sample_idxs].values
+
+    # Make the actual prediction random again by re-seeding the generator.
+    np.random.seed()
      
     predicted = prediction_function(train_data, train_truth, test_data, test_truth)
     accuracy = sps.stats.pearsonr(predicted, test_truth)[0]
