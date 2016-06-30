@@ -19,7 +19,7 @@ def main():
     if get_is_on_gpu():
         backend = SINGLE_CORE_BACKEND
 
-    run_optimization(get_net_prediction, params, 'optimal_wdnn.shelf', backend=backend)
+    run_optimization(get_net_prediction, params, 'optimal_wdnn.shelf', 'NWD', backend=backend)
 
 if __name__ == '__main__':
     main()
