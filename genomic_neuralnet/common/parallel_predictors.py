@@ -71,6 +71,7 @@ def run_predictors(prediction_functions, backend=SINGLE_CORE_BACKEND, random_see
     required_markers = int(np.ceil(num_markers * max_missing_allowed))
     bad_samples = (sample_missing_count > (num_markers * max_missing_allowed))
     clean_markers = clean_markers.drop(clean_markers.columns[bad_samples], axis=1)
+    clean_pheno = clean_pheno[~bad_samples]
     
     # Remove markers with many missing values calls.
     marker_missing_count = clean_markers.T.isnull().sum()

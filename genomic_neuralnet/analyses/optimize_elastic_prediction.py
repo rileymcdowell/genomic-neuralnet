@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+import numpy as np
+
 from genomic_neuralnet.config import JOBLIB_BACKEND
 from genomic_neuralnet.methods import get_en_prediction
 from genomic_neuralnet.analyses import run_optimization

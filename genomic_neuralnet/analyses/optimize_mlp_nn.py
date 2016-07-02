@@ -6,11 +6,21 @@ from genomic_neuralnet.analyses import run_optimization
 
 from genomic_neuralnet.util import get_is_on_gpu
 
+from sklearn.utils.extmath import cartesian
+
 def main():
-    hidden_size = map(lambda x: tuple([x]), (1, 2, 4, 8, 16, 32, 64, 128, 256, 512))
-    params = { 'hidden': hidden_size
+    hidden_sizes = (1, 2, 4, 8) #
+    cartesian([hidden_sizes])
+    one_layer = cartesian((hidden_sizes,)*1) 
+    two_layers = cartesian((hidden_sizes,)*2) 
+    three_layers = cartesian((hidden_sizes,)*3) 
+
+    tup = lambda x: map(tuple, x)
+    hidden = tup(one_layer) + tup(two_layers) + tup(three_layers)
+
+    params = { 'hidden': hidden 
              , 'batch_size': (100,)
-             , 'epochs'    : (250,)
+             , 'epochs'    : (1000,)
              }
 
     backend = JOBLIB_BACKEND

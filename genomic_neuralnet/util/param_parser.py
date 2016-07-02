@@ -8,27 +8,31 @@ from genomic_neuralnet.config import data
 from subprocess import call
 
 _parser = ArgumentParser()
-_parser.add_argument('-s', '--species', default='arabidopsis', choices=data.keys())
-_parser.add_argument('-t', '--trait', default='flowering')
-_parser.add_argument('-l', '--list', action='store_true', help='Print a list of traits for the chosen species and exit.')
-_parser.add_argument('-v', '--verbose', action='store_true')
-_parser.add_argument('-g', '--gpu', action='store_true')
-_parser.add_argument('-gx', '--gpux', action='store_true', help=SUPPRESS) # Hidden argument for GPU paralellism.
+_parser.add_argument('-s', '--species', default='arabidopsis', choices=data.keys(), help='Species')
+_parser.add_argument('-t', '--trait', default='flowering', help='Trait')
+_parser.add_argument('-v', '--verbose', action='store_true', help='Print more information')
+_parser.add_argument('-f', '--force', action='store_true', help='Force re-fitting of model')
+_parser.add_argument('--list', action='store_true', help='Print a list of traits for the chosen species and exit')
+_parser.add_argument('--stats', action='store_true', help='Print stats about dataset and exit')
+_parser.add_argument('--gpu', action='store_true', help='Run on GPU if available')
+_parser.add_argument('--gpux', action='store_true', help=SUPPRESS) # Hidden argument for GPU paralellism.
 
 _arguments = None
 def get_arguments():
     global _arguments
     if _arguments is None:
         _arguments = _parser.parse_args()
-        handle_list_option(_arguments)
+        _handle_list_option(_arguments)
+        _handle_show_stats_option(_arguments)
         allowed_traits = data[_arguments.species].keys()
         if not _arguments.trait in allowed_traits:
-            msg = 'Trait not found. Expected one of {}.'
-            print(msg.format(', '.format(allowed_traits)))
-        maybe_set_parallel_args(_arguments)
+            msg = 'Trait not found. Expected one in list: [{}].'
+            print(msg.format(', '.join(allowed_traits)))
+            exit()
+        _maybe_set_parallel_args(_arguments)
     return _arguments
 
-def maybe_set_parallel_args(args):
+def _maybe_set_parallel_args(args):
     """
     You cannot add Theano gpu parallelism flags
     after importing Theano, and we don't know when
@@ -44,7 +48,7 @@ def maybe_set_parallel_args(args):
         # Re-execute this process with the new environment.
         exit(call([sys.executable] + sys.argv + ['--gpux']))
 
-def handle_list_option(args):
+def _handle_list_option(args):
     """
     Print a list of traits for the chosen species and exit.
     """
@@ -54,6 +58,23 @@ def handle_list_option(args):
         exit()
     else:
         return
+
+def _handle_show_stats_option(args):
+    """ Should ."""
+    if args.stats:
+        species, trait = get_species_and_trait()
+        definition = data[species][trait]
+        markers = len(definition.markers)
+        samples = len(definition.pheno)
+        print('{} {} = {} markers X {} samples'.format(species, trait, markers, samples))
+        exit()
+    else:    
+        return 
+
+def get_should_force():
+    """ Should force re-training of model."""
+    args = get_arguments()
+    return args.force
 
 def get_is_on_gpu():
     """ 
