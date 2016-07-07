@@ -16,7 +16,7 @@ def main():
     spread = np.arange(50, 1001, 50) 
     params = {'centers': center, 'spread': spread}
 
-    run_optimization(get_rbf_nn_prediction, params, 'optimal_rbf.shelf')
+    run_optimization(get_rbf_nn_prediction, params, 'optimal_rbf.shelf', 'RBF')
 
 if __name__ == '__main__':
     main()

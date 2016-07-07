@@ -5,7 +5,7 @@ from genomic_neuralnet.methods import get_brr_prediction
 from genomic_neuralnet.analyses import run_optimization
 
 def main():
-    nums = (1e15, 1e10, 1e5, 1, 0, -1, -10, -100, -1000, -10000)
+    nums = (1e10, 1e5, 1e1, 0, -1e1, -1e5, -1e10)
     alpha_1 = nums
     alpha_2 = nums
     lambda_1 = nums
