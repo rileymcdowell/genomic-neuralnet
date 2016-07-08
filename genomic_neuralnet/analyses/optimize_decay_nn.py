@@ -2,17 +2,15 @@ from __future__ import print_function
 
 from genomic_neuralnet.config import SINGLE_CORE_BACKEND, JOBLIB_BACKEND
 from genomic_neuralnet.methods import get_net_prediction
-from genomic_neuralnet.analyses import run_optimization
+from genomic_neuralnet.analyses import run_optimization, HIDDEN, WEIGHT_DECAY, EPOCHS, BATCH_SIZE
 
 from genomic_neuralnet.util import get_is_on_gpu
 
 def main():
-    hidden_size = map(lambda x: tuple([x]), (1, 2, 4, 8, 16, 32, 64, 128, 256, 512))
-    weight_decay = (1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1)
-    params = { 'hidden': hidden_size
-             , 'weight_decay': weight_decay
-             , 'batch_size': (100,)
-             , 'epochs': (1000,)
+    params = { 'hidden': HIDDEN 
+             , 'weight_decay': WEIGHT_DECAY 
+             , 'batch_size': (BATCH_SIZE,)
+             , 'epochs': (EPOCHS,)
              }
 
     backend = JOBLIB_BACKEND

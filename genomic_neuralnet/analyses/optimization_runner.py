@@ -21,13 +21,13 @@ species, trait = get_species_and_trait()
 verbose = get_verbose()
 force = get_should_force()
 
-DIRECTORY_SHELF = 'directory.shelf'
+INDEX_SHELF = 'index.shelf'
 
 def _get_parameter_set(dicts):
     return (dict(zip(dicts, x)) for x in product(*dicts.itervalues()))
 
 def _record_in_master_shelf(method_name, shelf_name):
-    shelf_path = os.path.join('shelves', DIRECTORY_SHELF)
+    shelf_path = os.path.join('shelves', INDEX_SHELF)
     with closing(s.open(shelf_path)) as shelf:
         # The key indicates that this method has been fitted at least one time, and
         # the value is the location of the file where the results are stored.
