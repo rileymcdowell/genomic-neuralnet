@@ -12,6 +12,7 @@ def _get_hidden_sizes():
     tup = lambda x: map(tuple, x)
     return tup(one_layer) + tup(two_layers) + tup(three_layers)
 
+RUNS = 10
 EPOCHS = 4000
 BATCH_SIZE = 100
 HIDDEN = _get_hidden_sizes()
