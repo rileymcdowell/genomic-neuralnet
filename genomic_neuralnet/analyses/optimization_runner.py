@@ -19,6 +19,7 @@ from genomic_neuralnet.analyses import OptimizationResult, RUNS
 
 species, trait = get_species_and_trait()
 verbose = get_verbose()
+on_gpu = get_is_on_gpu()
 force = get_should_force()
 
 INDEX_SHELF = 'index.shelf'
@@ -50,7 +51,7 @@ def _is_already_recorded(shelf_name):
     return False # Some prior step was not run. Time to train.
 
 def _get_shelf_key():
-    return '|'.join((species, trait))
+    return '|'.join((species, trait, 'gpu' if on_gpu else 'cpu'))
 
 def _get_shelf_path(shelf_name):
     return os.path.join('shelves', shelf_name)
@@ -73,7 +74,8 @@ def run_optimization(function, params, shelf_name, method_name, backend=SINGLE_C
     raw_results = []
     for param_collection, accuracy_arr in zip(param_list, accuracies):
         means.append(np.mean(accuracy_arr))
-        std_devs.append(np.std(accuracy_arr))
+        # Lose 1 degree of freedom b/c we estimated mean also.
+        std_devs.append(np.std(accuracy_arr, ddof=1))         
         raw_results.append(accuracy_arr)
 
     df['mean'] = means

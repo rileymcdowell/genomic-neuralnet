@@ -5,6 +5,7 @@ from genomic_neuralnet.util import get_is_on_gpu
 class OptimizationResult(object):
     def __init__(self, df, time, species, trait, folds, runs):
         self.df = df
+        self.time = time
         self.on_gpu = get_is_on_gpu()
         self.species = species
         self.trait = trait
