@@ -47,26 +47,130 @@ def string_to_label((species, trait)):
     species_name = species.title()
     return '{}\n{}'.format(species_name, trait_name)
 
-def get_tukey_letters(accuracy_df):
-    # TODO: Consider Holm-Bonferroni method (step-down procedure) instead.
-    # TODO: Get results of Tukey's HSD
+def get_significance_letters(accuracy_df, ordered_model_names):
+    # Uses Holm-Bonferroni method (step-down procedure).
     # Goal: return a lookup (species, trait, model) -> Letter Code
+
+    # First get a way to look up pairwise p-values.
+    # (species, trait, (model_a, model_b)) -> p_value
+    pval_lookup = defaultdict(lambda: defaultdict(lambda: {}))
     groups = accuracy_df.groupby(['species', 'trait'])
     for (species, trait), sub_df in groups:
-        # Build one HSD for each species/trait combo.
-        accuracies = np.hstack(sub_df['raw_results'])
-        groups = sub_df['model']
-        groups_as_ids = apply(lambda x: groups.unique().indexof(x), groups)
+        for index_1, series_1 in sub_df.iterrows():
+            for index_2, series_2 in sub_df.iterrows():
+                if index_1 == index_2:
+                    continue # Don't compare with yourself.
 
-        hsd = pairwise_tukeyhsd(endog=accuracies, groups=groups_as_ids)
-        summary = hsd.summary()
-        as_df = pd.DatFrame.from_records(summary.data[1:], columns=summary.data[0]) 
+                # Run all possible pairwise tests within the species/trait combo.
+                model_1 = series_1['model']
+                accuracies_1 = np.hstack(series_1['raw_results'])
+                model_2 = series_2['model']
+                accuracies_2 = np.hstack(series_2['raw_results'])
 
-    exit()
+                # A paired T-test is appropriate here.
+                t_stat, p_value = sps.ttest_rel(accuracies_1, accuracies_2)
+
+                # This will be overwritten when model_1 and model_2 swap places
+                # during iteration. The p-value is the same either way, 
+                # so it doesn't matter if it gets overwritten.
+                pval_lookup[species][trait][frozenset([model_1, model_2])] = p_value
+
+    # Now, produce a way to look up pairwise hypothesis rejection.
+    hypothesis_lookup = defaultdict(lambda: defaultdict(lambda: {}))
+    
+    _ALPHA = 0.05
+    for species, trait_dict in pval_lookup.iteritems():
+        for trait, model_sets in trait_dict.iteritems():
+            # Holm-Bonferroni multiple-comparison correction. 
+            # See https://en.wikipedia.org/wiki/Holm-Bonferroni_method
+            hypothesis_keys, p_values = map(np.array, zip(*model_sets.iteritems()))
+            sort_indexes = np.argsort(p_values)
+            p_values = p_values[sort_indexes]
+            hypothesis_keys = hypothesis_keys[sort_indexes]
+            should_reject = []
+            for p_idx, p_value in enumerate(p_values):
+                criteria = _ALPHA / (len(p_values) + 1 - (p_idx + 1))
+                reject = p_value > criteria 
+                should_reject.append(reject)
+            minimal = np.argmax(should_reject)
+            rejections = np.zeros(len(p_values)).astype(bool)
+            rejections[:minimal] = True
+            for hypothesis, rejection in zip(hypothesis_keys, rejections):
+                hypothesis_lookup[species][trait][hypothesis] = rejection
+
+    print(hypothesis_lookup['wheat']['time_young_microspore'])
+
+    # Assign numbers to each hypothesis 'cluster'.
+    significance_number_lookup = defaultdict(lambda: defaultdict(lambda: {}))
+    for species, trait_dict in hypothesis_lookup.iteritems():
+        for trait, hypothesis_sets in trait_dict.iteritems(): 
+            hypothesis_keys, rejections = map(np.array, zip(*hypothesis_sets.iteritems()))
+            significance_index = 0
+            model_to_sig_num_lookup = {}
+            for (model_a, model_b), reject in zip(hypothesis_keys, rejections):
+                a_number = model_to_sig_num_lookup.get(model_a)
+                b_number = model_to_sig_num_lookup.get(model_b)
+                if reject:
+                    if a_number is None and b_number is None:
+                        # Create two new numbers.
+                        sig_number_1 = significance_index 
+                        significance_index += 1 # For next time.
+                        sig_number_2 = significance_index 
+                        significance_index += 1 # For next time.
+                        model_to_sig_num_lookup[model_a] = sig_number_1
+                        model_to_sig_num_lookup[model_b] = sig_number_2
+                    elif a_number is None: 
+                        sig_number = significance_index 
+                        significance_index += 1 # For next time.
+                        model_to_sig_num_lookup[model_a] = sig_number
+                    elif b_number is None: 
+                        sig_number = significance_index 
+                        significance_index += 1 # For next time.
+                        model_to_sig_num_lookup[model_b] = sig_number
+                elif not reject:
+                    if a_number is None and b_number is None:
+                        # Create a new number.
+                        sig_number = significance_index 
+                        significance_index += 1 # For next time.
+                        model_to_sig_num_lookup[model_a] = sig_number
+                        model_to_sig_num_lookup[model_b] = sig_number
+                    elif a_number is None: 
+                        model_to_sig_num_lookup[model_a] = b_number
+                    elif b_number is None: 
+                        model_to_sig_num_lookup[model_b] = a_number
+            # Add the keys to the main dictionary.                
+            for model_a, model_b in hypothesis_keys:
+                sig_num_a = model_to_sig_num_lookup[model_a]
+                sig_num_b = model_to_sig_num_lookup[model_b]
+                significance_number_lookup[species][trait][model_a] = sig_num_a 
+                significance_number_lookup[species][trait][model_b] = sig_num_b 
+
+    # Convert numbers to letters by sorting.
+    significance_letter_lookup = defaultdict(lambda: defaultdict(lambda: {}))
+    for species, trait_dict in significance_number_lookup.iteritems():
+        for trait, model_significance_numbers in trait_dict.iteritems():
+            models, significance_numbers = zip(*model_significance_numbers.iteritems())
+            class Container(object):
+                pass
+            obj = Container()
+            obj.current_letter = 'A'
+            def get_next_letter(obj):
+                to_return = obj.current_letter
+                obj.current_letter = chr(ord(obj.current_letter) + 1)
+                return to_return
+            get_next_letter = partial(get_next_letter, obj)
+
+            number_to_letter = defaultdict(get_next_letter) 
+            for model in ordered_model_names:
+                significance_number = model_significance_numbers[model]
+                significance_letter = number_to_letter[significance_number]
+                significance_letter_lookup[model][species][trait] = significance_letter
+
+    return significance_letter_lookup
 
 def make_plot(accuracy_df):
 
-    accuracy_df = accuracy_df.sort(['species', 'trait'], ascending=[1,0])
+    accuracy_df = accuracy_df.sort_values(by=['species', 'trait'], ascending=[1,0])
 
     fig, ax = plt.subplots()
 
@@ -98,16 +202,16 @@ def make_plot(accuracy_df):
         bar_sets.append((b, model))
         error_offsets.append(std_devs)
 
-    #tukey_letter_lookup = get_tukey_letters(accuracy_df)
+    significance_letter_lookup = get_significance_letters(accuracy_df, ordered_model_names=models)
 
     def label(idx, rects, model):
         errors = error_offsets[idx]
         for error, rect, species, trait in zip(errors, rects, species_list, trait_list):
             height = rect.get_height()
-            #tukey_letter = tukey_letter_lookup[model][species][trait]
+            significance_letter = significance_letter_lookup[model][species][trait]
             ax.text( rect.get_x() + rect.get_width()/2.
                    , height + error + 0.02
-                   , 'A' #tukey_letter 
+                   , significance_letter 
                    , ha='center'
                    , va='bottom')
 
@@ -154,8 +258,8 @@ def make_dataframe(shelf_data):
             for model, (mean, sd, count, raw_res, hidden) in model_dict.iteritems():
                 flattened_data.append((trait, model, mean, sd, count, raw_res, hidden))
     accuracy_df['trait'], accuracy_df['model'], accuracy_df['mean'], \
-        accuracy_df['sd'], accuracy_df['count'], accuracy_df['hidden'], \
-        accuracy_df['raw_results'] = zip(*flattened_data)
+        accuracy_df['sd'], accuracy_df['count'], accuracy_df['raw_results'], \
+        accuracy_df['hidden'] = zip(*flattened_data)
 
     return accuracy_df
     
