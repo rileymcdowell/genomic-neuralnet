@@ -14,6 +14,7 @@ from contextlib import closing
 from collections import defaultdict
 from functools import partial
 from sklearn.preprocessing import OneHotEncoder
+from get_significance_labels import get_labels
 
 _this_dir = os.path.dirname(__file__)
 data_dir = os.path.join(_this_dir, '..', 'shelves')
@@ -98,58 +99,18 @@ def get_significance_letters(accuracy_df, ordered_model_names):
             for hypothesis, rejection in zip(hypothesis_keys, rejections):
                 hypothesis_lookup[species][trait][hypothesis] = rejection
 
-    print(hypothesis_lookup['wheat']['time_young_microspore'])
-
     # Assign numbers to each hypothesis 'cluster'.
-    significance_number_lookup = defaultdict(lambda: defaultdict(lambda: {}))
+    significance_number_lookup = defaultdict(lambda: defaultdict(dict))
     for species, trait_dict in hypothesis_lookup.iteritems():
         for trait, hypothesis_sets in trait_dict.iteritems(): 
-            hypothesis_keys, rejections = map(np.array, zip(*hypothesis_sets.iteritems()))
-            significance_index = 0
-            model_to_sig_num_lookup = {}
-            for (model_a, model_b), reject in zip(hypothesis_keys, rejections):
-                a_number = model_to_sig_num_lookup.get(model_a)
-                b_number = model_to_sig_num_lookup.get(model_b)
-                if reject:
-                    if a_number is None and b_number is None:
-                        # Create two new numbers.
-                        sig_number_1 = significance_index 
-                        significance_index += 1 # For next time.
-                        sig_number_2 = significance_index 
-                        significance_index += 1 # For next time.
-                        model_to_sig_num_lookup[model_a] = sig_number_1
-                        model_to_sig_num_lookup[model_b] = sig_number_2
-                    elif a_number is None: 
-                        sig_number = significance_index 
-                        significance_index += 1 # For next time.
-                        model_to_sig_num_lookup[model_a] = sig_number
-                    elif b_number is None: 
-                        sig_number = significance_index 
-                        significance_index += 1 # For next time.
-                        model_to_sig_num_lookup[model_b] = sig_number
-                elif not reject:
-                    if a_number is None and b_number is None:
-                        # Create a new number.
-                        sig_number = significance_index 
-                        significance_index += 1 # For next time.
-                        model_to_sig_num_lookup[model_a] = sig_number
-                        model_to_sig_num_lookup[model_b] = sig_number
-                    elif a_number is None: 
-                        model_to_sig_num_lookup[model_a] = b_number
-                    elif b_number is None: 
-                        model_to_sig_num_lookup[model_b] = a_number
-            # Add the keys to the main dictionary.                
-            for model_a, model_b in hypothesis_keys:
-                sig_num_a = model_to_sig_num_lookup[model_a]
-                sig_num_b = model_to_sig_num_lookup[model_b]
-                significance_number_lookup[species][trait][model_a] = sig_num_a 
-                significance_number_lookup[species][trait][model_b] = sig_num_b 
+            these_sig_numbers = get_labels(*zip(*hypothesis_sets.iteritems()))
+            for model, sig_numbers in these_sig_numbers.iteritems():
+                significance_number_lookup[species][trait][model] = sig_numbers 
 
     # Convert numbers to letters by sorting.
     significance_letter_lookup = defaultdict(lambda: defaultdict(lambda: {}))
     for species, trait_dict in significance_number_lookup.iteritems():
-        for trait, model_significance_numbers in trait_dict.iteritems():
-            models, significance_numbers = zip(*model_significance_numbers.iteritems())
+        for trait, model_dict in trait_dict.iteritems():
             class Container(object):
                 pass
             obj = Container()
@@ -162,9 +123,9 @@ def get_significance_letters(accuracy_df, ordered_model_names):
 
             number_to_letter = defaultdict(get_next_letter) 
             for model in ordered_model_names:
-                significance_number = model_significance_numbers[model]
-                significance_letter = number_to_letter[significance_number]
-                significance_letter_lookup[model][species][trait] = significance_letter
+                model_significance_numbers = model_dict[model]
+                significance_letters = map(number_to_letter.__getitem__, model_significance_numbers)
+                significance_letter_lookup[model][species][trait] = ''.join(significance_letters)
 
     return significance_letter_lookup
 
