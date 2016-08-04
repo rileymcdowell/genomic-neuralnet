@@ -17,7 +17,7 @@ from sklearn.preprocessing import OneHotEncoder
 from get_significance_labels import get_labels
 
 _this_dir = os.path.dirname(__file__)
-data_dir = os.path.join(_this_dir, '..', 'shelves')
+data_dir = os.path.join(_this_dir, '..', '..', 'shelves')
 
 # Dark style, with palette that is printer and colorblind friendly.
 sns.set_style('dark')
@@ -46,7 +46,41 @@ def get_nn_model_data():
 def string_to_label((species, trait)): 
     trait_name = trait.replace('_', ' ').title()
     species_name = species.title()
+    if trait_name.count(' ') > 1:
+        trait_name = trait_name.replace(' ', '\n')
     return '{}\n{}'.format(species_name, trait_name)
+
+def make_dataframe(shelf_data):
+    data_dict = defaultdict(partial(defaultdict, dict)) 
+
+    num_models = len(shelf_data) 
+
+    for model_name, optimization in shelf_data.iteritems():
+        for species_trait, opt_result in optimization.iteritems():
+            species, trait, gpu = tuple(species_trait.split('|'))
+            max_fit_index = opt_result.df['mean'].idxmax()
+            best_fit = opt_result.df.loc[max_fit_index]
+            mean_acc = best_fit.loc['mean']
+            sd_acc = best_fit.loc['std_dev']
+            hidden = best_fit.loc['hidden']
+            count = opt_result.folds * opt_result.runs
+            raw_results = best_fit.loc['raw_results']
+            data_dict[species][trait][model_name] = (mean_acc, sd_acc, count, raw_results, hidden)
+    
+    # Add species column. Repeat once per trait per model (2*num models).
+    accuracy_df = pd.DataFrame({'species': np.repeat(data_dict.keys(), num_models*2)})
+
+    # Add trait column.
+    flattened_data = []
+    for species, trait_dict in data_dict.iteritems():
+        for trait, model_dict in trait_dict.iteritems():
+            for model, (mean, sd, count, raw_res, hidden) in model_dict.iteritems():
+                flattened_data.append((trait, model, mean, sd, count, raw_res, hidden))
+    accuracy_df['trait'], accuracy_df['model'], accuracy_df['mean'], \
+        accuracy_df['sd'], accuracy_df['count'], accuracy_df['raw_results'], \
+        accuracy_df['hidden'] = zip(*flattened_data)
+
+    return accuracy_df
 
 def get_significance_letters(accuracy_df, ordered_model_names):
     # Uses Holm-Bonferroni method (step-down procedure).
@@ -153,13 +187,13 @@ def make_plot(accuracy_df):
         std_errs = std_devs / np.sqrt(counts) # SE = sigma / sqrt(N)
         # Size of 95% CI is the SE multiplied by a constant from the t distribution 
         # with n-1 degrees of freedom. [0] is the positive interval direction. 
-        confidence_interval_mult = sps.t.interval(alpha=0.95, df=counts - 1)[0]
-        confidence_interval = confidence_interval_mult * std_errs
+        #confidence_interval_mult = sps.t.interval(alpha=0.95, df=counts - 1)[0]
+        #confidence_interval = confidence_interval_mult * std_errs
 
         offset = width * idx
         color = palette[idx]
         b = ax.bar(x + offset, means, width, color=color)
-        e = ax.errorbar(x + offset + width/2, means, yerr=confidence_interval, ecolor='black', fmt='none')
+        e = ax.errorbar(x + offset + width/2, means, yerr=std_errs, ecolor='black', fmt='none')
         bar_sets.append((b, model))
         error_offsets.append(std_devs)
 
@@ -189,40 +223,10 @@ def make_plot(accuracy_df):
     print(bar_sets)
     ax.legend(map(lambda x: x[0], bar_sets), list(models))
 
-    #plt.savefig('network_comparison.png')
+    plt.tight_layout()
+    fig_path = os.path.join(_this_dir, '..', 'network_comparison.png')
+    plt.savefig(fig_path)
     plt.show()
-
-def make_dataframe(shelf_data):
-    data_dict = defaultdict(partial(defaultdict, dict)) 
-
-    num_models = len(shelf_data) 
-
-    for model_name, optimization in shelf_data.iteritems():
-        for species_trait, opt_result in optimization.iteritems():
-            species, trait, gpu = tuple(species_trait.split('|'))
-            max_fit_index = opt_result.df['mean'].idxmax()
-            best_fit = opt_result.df.loc[max_fit_index]
-            mean_acc = best_fit.loc['mean']
-            sd_acc = best_fit.loc['std_dev']
-            hidden = best_fit.loc['hidden']
-            count = opt_result.folds * opt_result.runs
-            raw_results = best_fit.loc['raw_results']
-            data_dict[species][trait][model_name] = (mean_acc, sd_acc, count, raw_results, hidden)
-    
-    # Add species column. Repeat once per trait per model (2*num models).
-    accuracy_df = pd.DataFrame({'species': np.repeat(data_dict.keys(), num_models*2)})
-
-    # Add trait column.
-    flattened_data = []
-    for species, trait_dict in data_dict.iteritems():
-        for trait, model_dict in trait_dict.iteritems():
-            for model, (mean, sd, count, raw_res, hidden) in model_dict.iteritems():
-                flattened_data.append((trait, model, mean, sd, count, raw_res, hidden))
-    accuracy_df['trait'], accuracy_df['model'], accuracy_df['mean'], \
-        accuracy_df['sd'], accuracy_df['count'], accuracy_df['raw_results'], \
-        accuracy_df['hidden'] = zip(*flattened_data)
-
-    return accuracy_df
     
 def main():
     data = get_nn_model_data() 

@@ -48,7 +48,9 @@ def get_labels(comparisons, rejections):
         if is_isomorphic(combined, graph) and len(combination) < min_cliques:
             min_cliques = len(combination)
             click_edge_cover_graphs = clique_list
-            #break
+            # Combinations are sorted smallest to largest,
+            # so the first isomorphic graph is also the smallest
+            break 
 
     nodes = graph.nodes()
     node_significance_ids = defaultdict(list)
