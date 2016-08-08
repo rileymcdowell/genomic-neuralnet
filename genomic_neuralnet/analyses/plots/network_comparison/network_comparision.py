@@ -15,11 +15,50 @@ from collections import defaultdict
 from functools import partial
 from sklearn.preprocessing import OneHotEncoder
 from genomic_neuralnet.analyses.plots \
-        import get_nn_model_data, make_dataframe, palette, png_dir \
-             , get_significance_letters, string_to_label
+        import get_nn_model_data, palette, png_dir \
+             , get_significance_letters
 
 sns.set_style('dark')
 sns.set_palette(palette)
+
+def string_to_label((species, trait)):
+    trait_name = trait.replace('_', ' ').title()
+    species_name = species.title()
+    if trait_name.count(' ') > 1:
+        trait_name = trait_name.replace(' ', '\n')
+    return '{}\n{}'.format(species_name, trait_name)
+
+def make_best_dataframe(shelf_data):
+    data_dict = defaultdict(partial(defaultdict, dict)) 
+
+    num_models = len(shelf_data) 
+
+    for model_name, optimization in shelf_data.iteritems():
+        for species_trait, opt_result in optimization.iteritems():
+            species, trait, gpu = tuple(species_trait.split('|'))
+            max_fit_index = opt_result.df['mean'].idxmax()
+            best_fit = opt_result.df.loc[max_fit_index]
+            mean_acc = best_fit.loc['mean']
+            sd_acc = best_fit.loc['std_dev']
+            hidden = best_fit.loc['hidden']
+            count = opt_result.folds * opt_result.runs
+            raw_results = best_fit.loc['raw_results']
+            data_dict[species][trait][model_name] = (mean_acc, sd_acc, count, raw_results, hidden)
+    
+    # Add species column. Repeat once per trait per model (2*num models).
+    accuracy_df = pd.DataFrame({'species': np.repeat(data_dict.keys(), num_models*2)})
+
+    # Add trait column.
+    flattened_data = []
+    for species, trait_dict in data_dict.iteritems():
+        for trait, model_dict in trait_dict.iteritems():
+            for model, (mean, sd, count, raw_res, hidden) in model_dict.iteritems():
+                flattened_data.append((trait, model, mean, sd, count, raw_res, hidden))
+    accuracy_df['trait'], accuracy_df['model'], accuracy_df['mean'], \
+        accuracy_df['sd'], accuracy_df['count'], accuracy_df['raw_results'], \
+        accuracy_df['hidden'] = zip(*flattened_data)
+
+    return accuracy_df
 
 def make_plot(accuracy_df):
 
@@ -89,7 +128,7 @@ def make_plot(accuracy_df):
 def main():
     data = get_nn_model_data() 
 
-    accuracy_df = make_dataframe(data)
+    accuracy_df = make_best_dataframe(data)
 
     make_plot(accuracy_df)
 
