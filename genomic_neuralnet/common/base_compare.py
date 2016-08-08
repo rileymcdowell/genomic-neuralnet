@@ -5,7 +5,7 @@ import scipy.stats as sps
 
 from genomic_neuralnet.config import TRAIN_SIZE, NUM_FOLDS
 
-def try_predictor(markers, pheno, prediction_function, random_seed, id_val=None):
+def try_predictor(markers, pheno, prediction_function, random_seed, id_val=None, retry_nans=False):
     """
     Pass in markers, phenotypes, and a list of prediction functions.
     Returns the prediction accuracy (pearson r) relative to measured phenotype. 
@@ -43,8 +43,12 @@ def try_predictor(markers, pheno, prediction_function, random_seed, id_val=None)
     # Make the actual prediction random again by re-seeding the generator.
     np.random.seed()
      
-    predicted = prediction_function(train_data, train_truth, test_data, test_truth)
-    accuracy = sps.stats.pearsonr(predicted, test_truth)[0]
-    
-    return accuracy, id_val
+    while True:
+        predicted = prediction_function(train_data, train_truth, test_data, test_truth)
+        accuracy = sps.stats.pearsonr(predicted, test_truth)[0]
+
+        if np.isnan(accuracy) and retry_nans:
+            continue
+        else:
+            return accuracy, id_val
 

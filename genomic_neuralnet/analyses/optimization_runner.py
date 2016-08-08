@@ -56,7 +56,7 @@ def _get_shelf_key():
 def _get_shelf_path(shelf_name):
     return os.path.join('shelves', shelf_name)
 
-def run_optimization(function, params, shelf_name, method_name, backend=SINGLE_CORE_BACKEND):
+def run_optimization(function, params, shelf_name, method_name, backend=SINGLE_CORE_BACKEND, retry_nans=False):
     # Check if we even need to do this.
     if _is_already_recorded(shelf_name) and not force:
         print('Training was already completed.')
@@ -67,7 +67,7 @@ def run_optimization(function, params, shelf_name, method_name, backend=SINGLE_C
     param_list = list(_get_parameter_set(params))
     df = pd.DataFrame(param_list)
     prediction_functions = map(lambda x: partial(function, **x), param_list)
-    accuracies = run_predictors(prediction_functions, backend=backend, runs=RUNS)
+    accuracies = run_predictors(prediction_functions, backend=backend, runs=RUNS, retry_nans=retry_nans)
 
     means = []
     std_devs = []

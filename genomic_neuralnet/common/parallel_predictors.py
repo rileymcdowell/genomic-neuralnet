@@ -90,7 +90,7 @@ def _get_clean_data():
 
     return clean_pheno, clean_markers
 
-def run_predictors(prediction_functions, backend=SINGLE_CORE_BACKEND, random_seed=1, runs=1):
+def run_predictors(prediction_functions, backend=SINGLE_CORE_BACKEND, random_seed=1, runs=1, retry_nans=False):
     """
     Runs all prediction functions on the same data in a 
     batch process across the configured number of CPUs. 
@@ -108,7 +108,8 @@ def run_predictors(prediction_functions, backend=SINGLE_CORE_BACKEND, random_see
             for fold_idx in range(NUM_FOLDS):
                 identifier = (fold_idx, prediction_function_idx)
                 prediction_function = prediction_functions[prediction_function_idx]
-                params = (clean_markers, clean_pheno, prediction_function, random_seed, identifier)
+                params = ( clean_markers, clean_pheno, prediction_function
+                         , random_seed, identifier, retry_nans)
                 job_params.append(params)
 
         # Run the jobs and return a tuple of the accuracy and the id (which is also a tuple).

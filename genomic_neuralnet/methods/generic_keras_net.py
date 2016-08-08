@@ -9,6 +9,7 @@ from keras.optimizers import Adagrad
 from keras.regularizers import WeightRegularizer
 
 from sklearn.preprocessing import MinMaxScaler 
+from sklearn.metrics import mean_squared_error
 
 class NeuralNetContainer(object):
     def __init__(self): 
@@ -64,7 +65,19 @@ def _train_net(container, X, y):
     batch_size = container.batch_size
     verbose = int(container.verbose)
 
-    model.fit(X, y, nb_epoch=epochs, batch_size=batch_size, verbose=verbose)
+    mse = np.inf
+    sections = epochs / 250
+    assert np.mod(epochs, 250) == 0 # Require epochs divisible by 250.
+    for iter in range(sections):
+        model.fit(X, y, nb_epoch=250, batch_size=batch_size, verbose=verbose)
+
+        # Weak early termination / convergence detection.
+        prediction = _predict(container, X)
+        new_mse = mean_squared_error(y, prediction)
+        if new_mse >= mse:
+            break # no improvement in 250 epochs.
+        else:
+            mse = new_mse
 
 def _predict(container, X):
     model = container.model
