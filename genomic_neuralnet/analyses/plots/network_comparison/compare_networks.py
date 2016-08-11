@@ -117,7 +117,6 @@ def make_plot(accuracy_df):
     ax.set_ylim((0, 1))
 
     # Legend
-    print(bar_sets)
     ax.legend(map(lambda x: x[0], bar_sets), list(models))
 
     plt.tight_layout()

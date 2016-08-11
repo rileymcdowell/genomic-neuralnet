@@ -44,6 +44,7 @@ def make_best_by_depth_dataframe(shelf_data):
             df['gpu'] = gpu
             df['model'] = model_name.upper()
             raw_res = np.array(df['raw_results'].tolist())
+            # TODO: Remove this once re-trained with no-NaN filter.
             no_nan_means = np.apply_along_axis(np.nanmean, axis=1, arr=raw_res)
             df['nn_mean'] = no_nan_means
             dfs.append(df)
@@ -98,26 +99,36 @@ def make_plot(accuracy_df):
         ax.grid(b=True, which='minor', color='w', linewidth=1.0)
         is_species = accuracy_df['species'] == species
         is_trait = accuracy_df['trait'] == trait
-        for depth in depths:
-            is_depth = accuracy_df['depth'] == depth
-            for model in models:
-                is_model = accuracy_df['model'] == model
-                sub_df = accuracy_df[is_species & is_trait & is_depth & is_model]
-                max_idx = sub_df['mean'].idxmax()
-                best = sub_df.loc[max_idx]
-                hidden = best['hidden']
+        # Thinking about leaving out the text annotation. It's more confusing
+        # than helpful since it only applies to one of many models outputs in 
+        # the distribution within the violin plot.
+        #for depth in depths:
+        #    is_depth = accuracy_df['depth'] == depth
+        #    annotations = []
+        #    y_coords = []
+        #    for model in models:
+        #        is_model = accuracy_df['model'] == model
+        #        sub_df = accuracy_df[is_species & is_trait & is_depth & is_model]
+        #        max_idx = sub_df['mean'].idxmax()
+        #        best = sub_df.loc[max_idx]
+        #        hidden = best['hidden']
 
-                x_1 = best['depth'] - 1 # Group
-                x_2 = (models.index(model) - 1.5) * violin_params['width'] * 0.25 # Model
-                x_3 = -0.02 # Offset
-                x = x_1 + x_2 + x_3
-                y = best['mean'] + 0.05
-                s = '-'.join(map(str, best['hidden']))
-                text_params = { 'rotation': 45, 'ha': 'left', 'va': 'bottom' }
-                ax.text(x, y, s, **text_params)
+        #        x_1 = best['depth'] - 1 # Group
+        #        x_2 = (models.index(model) - 1.5) * violin_params['width'] * 0.25 # Model
+        #        x_3 = -0.02 # Offset
+        #        x = x_1 + x_2 + x_3
+        #        y = best['mean'] + 0.05
+        #        s = '-'.join(map(str, best['hidden']))
+        #        y_coords.append(y)
+        #        annotations.append((x, s))
+
+        #    text_params = { 'rotation': 45, 'ha': 'left', 'va': 'bottom' }
+        #    max_y = np.max(y_coords)
+        #    for (x, s) in annotations:
+        #        ax.text(x, max_y, s, **text_params)
 
     plt.tight_layout()
-    fig_path = os.path.join(png_dir, 'compare_depths.png') 
+    fig_path = os.path.join(png_dir, 'depth_comparison.png') 
     plt.savefig(fig_path)
     plt.show()
     
