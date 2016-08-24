@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import os
+import json
 
 import numpy as np
 import pandas as pd
@@ -18,17 +19,38 @@ from genomic_neuralnet.analyses.plots.get_significance_labels import get_labels
 
 _this_dir = os.path.dirname(__file__)
 data_dir = os.path.join(_this_dir, '..', 'shelves')
+timing_dir = os.path.join(_this_dir, '..', 'timing_logs')
 
 png_dir = _this_dir
 
 # Dark style, with palette that is printer and colorblind friendly.
 sns.set_style('dark')
-palette = sns.cubehelix_palette(n_colors=4, rot=0.7, dark=0.20, light=0.6) 
+palette = sns.cubehelix_palette(n_colors=4, rot=0.7, dark=0.20, light=0.6)
 sns.set_palette(palette)
 
 def _get_shelf_data(path):
     with closing(DbfilenameShelf(path, flag='r')) as shelf:
         return dict(shelf) 
+
+def get_timing_data():
+    records = []
+    for file_name in os.listdir(timing_dir):
+        if not file_name.endswith('.log'):
+            continue
+        species = file_name.split('_')[0]
+        processor = file_name.split('_')[-1].split('.')[0]
+        trait = file_name[len(species) + 1:-1*((len(processor) + 4) + 1)]
+        full_path = os.path.join(timing_dir, file_name)
+        for line in open(full_path, 'r'):
+            try:
+                time = json.loads(line)['seconds']
+                records.append((species, trait, processor, time))
+            except:
+                continue # a non-json log line.
+
+    df = pd.DataFrame.from_records(records)
+    df.columns = ['species', 'trait', 'processor', 'time']
+    return df
 
 def get_nn_model_data():
     index_db_path = os.path.join(data_dir, 'index.shelf')
@@ -126,3 +148,10 @@ def get_significance_letters(accuracy_df, ordered_model_names):
 
     return significance_letter_lookup
 
+
+def main():
+    #get_timing_data() 
+    pass
+
+if __name__ == '__main__':
+    main()

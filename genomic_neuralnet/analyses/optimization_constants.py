@@ -13,7 +13,7 @@ def _get_hidden_sizes():
     return _one_layer_nets + _two_layer_nets + _three_layer_nets
 
 RUNS = 3 
-EPOCHS = 2000 # Should be divisible by 250.
+EPOCHS = 100000 # Should be divisible by 1000.
 BATCH_SIZE = 100
 HIDDEN = _get_hidden_sizes()
 DROPOUT = (0.2, 0.3, 0.4, 0.5)

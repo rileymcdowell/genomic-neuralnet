@@ -14,13 +14,15 @@ from contextlib import closing
 from genomic_neuralnet.config import SINGLE_CORE_BACKEND, NUM_FOLDS
 from genomic_neuralnet.common import run_predictors
 from genomic_neuralnet.util import \
-        get_is_on_gpu, get_species_and_trait, get_verbose, get_should_force
+        get_is_on_gpu, get_species_and_trait, get_verbose, \
+        get_should_force, get_is_dryrun
 from genomic_neuralnet.analyses import OptimizationResult, RUNS
 
 species, trait = get_species_and_trait()
 verbose = get_verbose()
 on_gpu = get_is_on_gpu()
 force = get_should_force()
+dryrun = get_is_dryrun()
 
 INDEX_SHELF = 'index.shelf'
 
@@ -56,7 +58,24 @@ def _get_shelf_key():
 def _get_shelf_path(shelf_name):
     return os.path.join('shelves', shelf_name)
 
+
+def _do_dryrun(function, params, backend, retry_nans):
+    first_params = list(_get_parameter_set(params))[0]
+    print('params:', first_params)
+    final_func = partial(function, **first_params)
+    accuracy = run_predictors([final_func], backend=backend, runs=RUNS, retry_nans=retry_nans)[0]
+    print('min:', np.min(accuracy))
+    print('max:', np.max(accuracy))
+    print('mean:', np.mean(accuracy))
+    print('count:', len(accuracy))
+
+
 def run_optimization(function, params, shelf_name, method_name, backend=SINGLE_CORE_BACKEND, retry_nans=False):
+    # Check for dryrun.
+    if dryrun:
+        _do_dryrun(function, params, backend, retry_nans)
+        return
+
     # Check if we even need to do this.
     if _is_already_recorded(shelf_name) and not force:
         print('Training was already completed.')

@@ -13,8 +13,7 @@ echo "Beginning Optimization. Time is: $(date)"
 echo '$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$'
 
 # Loop over every optimization function for every species and trait.
-# This will populate shelf database files which store the output of the optimizations.
-for file in $( ls optimize*nn.py ) ; do
+for file in $( ls optimize_decay_dropout_nn.py ) ; do
     for species in ${SPECIES[@]} ; do
         for trait in $(python $file --species $species --list ) ; do
             echo '$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$'
@@ -25,13 +24,14 @@ for file in $( ls optimize*nn.py ) ; do
             if [ $? -eq 0 ] ; then
                 # Train neural nets on GPU.
                 sleep 10 # Give the GPU time to release memory.
-                python $file --species $species --trait $trait --gpu
-                sleep 10 # Give the GPU time to release memory.
-                # Then re-train on CPU to compare times.
-                python $file --species $species --trait $trait --force
-            else 
-                # Train others in normal mode.
-                python $file --species $species --trait $trait
+                echo 'Training on GPU'
+                python $file --species $species --trait $trait \
+                    --dryrun --time-stats --gpu &> timing_logs/${species}_${trait}_gpu.log
+                #sleep 10 # Give the GPU time to release memory.
+                ## Then re-train on CPU to compare times.
+                #echo 'Training on CPU'
+                #python $file --species $species --trait $trait \
+                #    --dryrun --time-stats       &> timing_logs/${species}_${trait}_cpu.log
             fi
 
             echo '####################################################'
