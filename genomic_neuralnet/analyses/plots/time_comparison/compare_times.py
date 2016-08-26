@@ -17,7 +17,7 @@ from collections import defaultdict
 from functools import partial
 from sklearn.preprocessing import OneHotEncoder
 from genomic_neuralnet.analyses.plots \
-        import get_timing_data, palette, png_dir \
+        import get_timing_data, palette, out_dir \
              , get_significance_letters
 
 from genomic_neuralnet.methods.generic_keras_net import TIMING_EPOCHS
@@ -34,8 +34,6 @@ def two_line_label((species, trait)):
     return '{}\n{}'.format(species_name, trait_name)
 
 def make_plot(timing_df):
-
-    print(timing_df.groupby(['processor', 'species']).mean())
 
     fig, ax = plt.subplots()
 
@@ -55,8 +53,6 @@ def make_plot(timing_df):
         for idx, trait in enumerate(traits):
             same_trait = timing_df['trait'] == trait
             timing_df.loc[same_species & same_trait, 'trait_id'] = idx
-
-    #print(timing_df[['species', 'trait', 'trait_id', 'processor']].drop_duplicates().sort_values(by=['species', 'trait']))
 
     traits_and_procs = timing_df[['trait', 'trait_id', 'processor']].drop_duplicates()
     traits_and_procs = traits_and_procs.sort_values(by=['trait_id', 'processor'], ascending=[1, 1])
@@ -106,7 +102,6 @@ def make_plot(timing_df):
         e = ax.errorbar(x + offset + width/2, means, yerr=std_errs, ecolor='black', fmt='none')
         bar_sets.append((b, (trait, proc)))
         error_offsets.append(std_errs)
-        print('$$$$$ END $$$$$')
 
     label_positions = np.arange(len(unique_species) * NUM_TRAITS).astype(float) / 2 + width
     first_positions = label_positions - width/2
@@ -116,7 +111,7 @@ def make_plot(timing_df):
     for x_val, species, trait in zip(label_positions, species_labels, trait_labels):
         cpu_times = data_lookup[species][trait]['cpu']
         gpu_times = data_lookup[species][trait]['gpu']
-        sig_diff = sps.ttest_rel(cpu_times, gpu_times).pvalue < 0.05
+        sig_diff = sps.ttest_ind(cpu_times, gpu_times).pvalue < 0.05
         bar1_label = 'A'
         bar2_label = 'B' if sig_diff else 'A'
         ax.text( x_val - (width/2)
@@ -130,7 +125,7 @@ def make_plot(timing_df):
                , ha='center'
                , va='bottom')
 
-    ax.set_ylabel('Mean Time Per {} Epochs'.format(str(TIMING_EPOCHS/1000) + 'K'))
+    ax.set_ylabel('Average Time (seconds) Per {} Epochs'.format(str(TIMING_EPOCHS/1000) + 'K'))
     ax.set_xticks(label_positions)
     ax.set_xticklabels(map(two_line_label, zip(species_labels, trait_labels))) 
     ax.set_xlim((0 - width / 2, len(x)))
@@ -141,7 +136,7 @@ def make_plot(timing_df):
     ax.legend(handles=[cpu_patch, gpu_patch])
 
     plt.tight_layout()
-    fig_path = os.path.join(png_dir, 'time_comparison.png')
+    fig_path = os.path.join(out_dir, 'time_comparison.png')
     plt.savefig(fig_path)
     plt.show()
     

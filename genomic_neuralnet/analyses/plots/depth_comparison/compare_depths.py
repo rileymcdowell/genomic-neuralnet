@@ -16,7 +16,7 @@ from collections import defaultdict
 from functools import partial
 from sklearn.preprocessing import OneHotEncoder
 from genomic_neuralnet.analyses.plots \
-        import get_nn_model_data, palette, png_dir \
+        import get_nn_model_data, palette, out_dir \
              , get_significance_letters
 
 sns.set_style('darkgrid')
@@ -128,7 +128,7 @@ def make_plot(accuracy_df):
         #        ax.text(x, max_y, s, **text_params)
 
     plt.tight_layout()
-    fig_path = os.path.join(png_dir, 'depth_comparison.png') 
+    fig_path = os.path.join(out_dir, 'depth_comparison.png') 
     plt.savefig(fig_path)
     plt.show()
     

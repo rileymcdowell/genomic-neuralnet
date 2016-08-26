@@ -21,7 +21,7 @@ _this_dir = os.path.dirname(__file__)
 data_dir = os.path.join(_this_dir, '..', 'shelves')
 timing_dir = os.path.join(_this_dir, '..', 'timing_logs')
 
-png_dir = _this_dir
+out_dir = _this_dir
 
 # Dark style, with palette that is printer and colorblind friendly.
 sns.set_style('dark')
@@ -64,6 +64,20 @@ def get_nn_model_data():
     # Filter to just NN items.
     nn_keys = filter(lambda k: k.startswith('N'), data)
     data = {k:v for k,v in data.iteritems() if k in nn_keys}
+
+    return data
+
+def get_all_model_data():
+    index_db_path = os.path.join(data_dir, 'index.shelf')
+    index = _get_shelf_data(index_db_path)
+    
+    data = {}
+    for name, path in index.iteritems():
+        db_path = os.path.join(data_dir, path)
+        data[name] = _get_shelf_data(db_path) 
+
+    # Filter to just NN items.
+    data = {k:v for k,v in data.iteritems()}
 
     return data
 

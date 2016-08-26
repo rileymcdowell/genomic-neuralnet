@@ -13,7 +13,7 @@ echo "Beginning Optimization. Time is: $(date)"
 echo '$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$'
 
 # Loop over every optimization function for every species and trait.
-for file in $( ls optimize_decay_dropout_nn.py ) ; do
+for file in $( ls optimize_mlp_nn.py ) ; do
     for species in ${SPECIES[@]} ; do
         for trait in $(python $file --species $species --list ) ; do
             echo '$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$'
