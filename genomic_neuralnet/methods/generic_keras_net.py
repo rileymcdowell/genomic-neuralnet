@@ -93,7 +93,7 @@ def _train_net(container, X, y, override_epochs=None, early_termination=True):
     loss_history = LossHistory()
     callbacks = [loss_history]
     if early_termination:
-        early_stopping = EarlyStopping(monitor='loss', patience=250, verbose=1, mode='min')
+        early_stopping = EarlyStopping(monitor='loss', patience=250, mode='min')
         callbacks.append(early_stopping)
 
     model.fit( X, 

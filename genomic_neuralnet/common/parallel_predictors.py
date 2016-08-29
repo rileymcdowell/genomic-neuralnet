@@ -18,6 +18,9 @@ IDENTIFIER_IDX = 1
 FOLD_IDX = 0
 PRED_FUNC_IDX = 1
 
+MAX_INT = 2**31 * 2 - 1
+MIN_INT = 0 
+
 if INIT_CELERY == CELERY_BACKEND:
     try:
         # Set up celery and define tasks.
@@ -30,16 +33,23 @@ if INIT_CELERY == CELERY_BACKEND:
     except:
         pass
 
+def _dot_wrapper(func, *params):
+    res = func(*params)
+    print('.', end='')
+    sys.stdout.flush()
+    return res
+
 def _run_joblib(job_params):
     from joblib import delayed, Parallel
-    accuracies = Parallel(n_jobs=CPU_CORES)(delayed(try_predictor)(*x) for x in job_params)
+
+    accuracies = Parallel(n_jobs=CPU_CORES)(delayed(_dot_wrapper)(try_predictor, *x) for x in job_params)
     return accuracies
 
 def _run_debug(job_params):
     """ Single process for easy debugging. """
     accuracies = []
     for args in job_params:
-        accuracies.append(try_predictor(*args))
+        accuracies.append(_dot_wrapper(try_predictor, *args))
     return accuracies
 
 def _run_celery(job_params):
@@ -90,7 +100,7 @@ def _get_clean_data():
 
     return clean_pheno, clean_markers
 
-def run_predictors(prediction_functions, backend=SINGLE_CORE_BACKEND, random_seed=1, runs=1, retry_nans=False):
+def run_predictors(prediction_functions, backend=SINGLE_CORE_BACKEND, random_seed=0, runs=1, retry_nans=False):
     """
     Runs all prediction functions on the same data in a 
     batch process across the configured number of CPUs. 
@@ -123,7 +133,7 @@ def run_predictors(prediction_functions, backend=SINGLE_CORE_BACKEND, random_see
             print('Unsupported Processing Backend')
             sys.exit(1)
         accuracy_results.append(accuracies)
-        random_seed += 1 # Increment seed to obtain new data folds this run.
+        random_seed = np.random.randint(MIN_INT, MAX_INT) # New seed to obtain new data folds this run.
 
     accuracies = list(chain.from_iterable(accuracy_results))
 

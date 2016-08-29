@@ -70,7 +70,9 @@ def _do_dryrun(function, params, backend, retry_nans):
     print('count:', len(accuracy))
 
 
-def run_optimization(function, params, shelf_name, method_name, backend=SINGLE_CORE_BACKEND, retry_nans=False):
+def run_optimization( function, params, shelf_name, method_name, 
+                      sample_size_multiplier=1, backend=SINGLE_CORE_BACKEND, 
+                      retry_nans=False):
     # Check for dryrun.
     if dryrun:
         _do_dryrun(function, params, backend, retry_nans)
@@ -83,23 +85,33 @@ def run_optimization(function, params, shelf_name, method_name, backend=SINGLE_C
         return 
 
     start = time.time()
-    param_list = list(_get_parameter_set(params))
-    df = pd.DataFrame(param_list)
-    prediction_functions = map(lambda x: partial(function, **x), param_list)
-    accuracies = run_predictors(prediction_functions, backend=backend, runs=RUNS, retry_nans=retry_nans)
 
-    means = []
-    std_devs = []
-    raw_results = []
-    for param_collection, accuracy_arr in zip(param_list, accuracies):
-        means.append(np.mean(accuracy_arr))
-        # Lose 1 degree of freedom b/c we estimated mean also.
-        std_devs.append(np.std(accuracy_arr, ddof=1))         
-        raw_results.append(accuracy_arr)
+    df_list = []
+    for mult_idx in range(sample_size_multiplier):
+        param_list = list(_get_parameter_set(params))
+        df = pd.DataFrame(param_list)
+        prediction_functions = map(lambda x: partial(function, **x), param_list)
+        accuracies = run_predictors( prediction_functions, backend=backend,
+                                     random_seed=mult_idx, runs=RUNS,
+                                     retry_nans=retry_nans
+                                   )
 
-    df['mean'] = means
-    df['std_dev'] = std_devs
-    df['raw_results'] = raw_results # Stores one list per single datagrid cell.
+        means = []
+        std_devs = []
+        raw_results = []
+        for param_collection, accuracy_arr in zip(param_list, accuracies):
+            means.append(np.mean(accuracy_arr))
+            # Lose 1 degree of freedom b/c we estimated mean also.
+            std_devs.append(np.std(accuracy_arr, ddof=1))
+            raw_results.append(accuracy_arr)
+
+        df['mean'] = means
+        df['std_dev'] = std_devs
+        df['raw_results'] = raw_results # Stores one list per single datagrid cell.
+        df['iter_id'] = mult_idx
+        df_list.append(df)
+
+    df = pd.concat(df_list)
 
     if verbose:
         print(df)
@@ -121,7 +133,7 @@ def run_optimization(function, params, shelf_name, method_name, backend=SINGLE_C
     print('Fitting Parameters Were:')
     print('Runs: {}'.format(RUNS))
     print('Folds: {}'.format(NUM_FOLDS))
-    print('Raw Results Shape: {}'.format(np.array(raw_results).shape))
+    print('Raw Results Shape: {}'.format(df['raw_results'].values.shape))
     print()
 
     print('Done.')

@@ -24,9 +24,9 @@ for file in $( ls optimize*nn.py ) ; do
             echo $file | grep 'nn.py' > /dev/null
             if [ $? -eq 0 ] ; then
                 # Train neural nets on GPU.
-                sleep 10 # Give the GPU time to release memory.
-                python $file --species $species --trait $trait --gpu
-                sleep 10 # Give the GPU time to release memory.
+                #sleep 10 # Give the GPU time to release memory.
+                #python $file --species $species --trait $trait --gpu
+                #sleep 10 # Give the GPU time to release memory.
                 # Then re-train on CPU to compare times.
                 python $file --species $species --trait $trait --force
             else 
