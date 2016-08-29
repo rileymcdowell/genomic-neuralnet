@@ -5,7 +5,6 @@ import numpy as np
 
 from functools import partial
 
-from genomic_neuralnet.config import JOBLIB_BACKEND
 from genomic_neuralnet.common import run_predictors
 from genomic_neuralnet.methods import get_rbf_nn_prediction 
 from genomic_neuralnet.analyses import run_optimization

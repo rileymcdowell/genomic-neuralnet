@@ -1,4 +1,5 @@
-from __future__ import print_function
+from __future__ import print_function 
+
 import sys
 import time
 import numpy as np
@@ -9,9 +10,9 @@ from genomic_neuralnet.common.base_compare import try_predictor
 from genomic_neuralnet.config import REQUIRED_MARKER_CALL_PROPORTION, \
                                      REQUIRED_MARKERS_PER_SAMPLE_PROP
 from genomic_neuralnet.config import CPU_CORES, NUM_FOLDS
-from genomic_neuralnet.config import CELERY_BACKEND, JOBLIB_BACKEND, \
-                                     SINGLE_CORE_BACKEND, INIT_CELERY
-from genomic_neuralnet.util import get_markers_and_pheno
+from genomic_neuralnet.config import PARALLEL_BACKEND, SINGLE_CORE_BACKEND
+from genomic_neuralnet.util import get_markers_and_pheno, get_use_celery
+from genomic_neuralnet.common.read_clean_data import get_clean_data
 
 ACCURACY_IDX = 0
 IDENTIFIER_IDX = 1
@@ -19,19 +20,7 @@ FOLD_IDX = 0
 PRED_FUNC_IDX = 1
 
 MAX_INT = 2**31 * 2 - 1
-MIN_INT = 0 
-
-if INIT_CELERY == CELERY_BACKEND:
-    try:
-        # Set up celery and define tasks.
-        from celery import Celery
-        name = 'parallel_predictors'
-        backend = 'redis://localhost'
-        broker = 'amqp://guest@localhost//'
-        app = Celery(name, backend=backend, broker=broker)
-        celery_try_predictor = app.task(try_predictor)
-    except:
-        pass
+MIN_INT = 0
 
 def _dot_wrapper(func, *params):
     res = func(*params)
@@ -53,52 +42,43 @@ def _run_debug(job_params):
     return accuracies
 
 def _run_celery(job_params):
-    tasks = [celery_try_predictor.delay(*x) for x in job_params]
+    from genomic_neuralnet.common.celery_slave \
+        import celery_try_predictor, get_num_workers, get_queue_length, \
+               disk_cache, load_and_clear_cache
+               
+    job_idx = 0
+    results = {} 
+    done = 0
     while True:
-        stati = list(map(lambda x: x.ready(), tasks))
-        done = filter(lambda x: x, stati)
-        print('Completed {} of {} cycles.'.format(len(done), len(stati)), end='\n')
-        if len(stati) == len(done):
-            break
+        queue_len = get_queue_length()
+        workers = get_num_workers()
+        desired_messages = workers * 2
+        num_to_add = desired_messages - queue_len 
+        # Add messages to fill queue.
+        for _ in range(num_to_add):
+            if job_idx >= len(job_params):
+                break # Work queue exhausted.
+            delayed = celery_try_predictor.delay(*job_params[job_idx])
+            results[job_idx] = delayed
+            job_idx += 1
+        # Cache finished work.
+        keys = results.keys()
+        for key in keys:
+            result = results[key]
+            if result.ready():
+                accs = result.get()
+                disk_cache(accs, key)
+                del results[key] # Stop tracking.
+                done += 1
+        if done == len(job_params):
+            break # All done!
         else:
+            # Wait a bit while work gets done.
+            print('Completed {} of {} cycles.'.format(done, len(job_params)))
             time.sleep(15)
-    print('')
-    accuracies = [t.get() for t in tasks]
+
+    accuracies = load_and_clear_cache(range(len(job_params)))
     return accuracies
-
-def _get_clean_data():
-    markers, pheno = get_markers_and_pheno()
-
-    # Remove missing phenotypic values from both datasets.
-    has_trait_data = pheno.notnull()
-    clean_pheno = pheno[has_trait_data].copy(deep=True)
-    clean_markers = markers.drop(markers.columns[~has_trait_data], axis=1)
-
-    # Remove samples with many missing marker calls.
-    sample_missing_count = clean_markers.isnull().sum()
-    num_markers = len(clean_markers)
-    max_missing_allowed = 1. - REQUIRED_MARKERS_PER_SAMPLE_PROP
-    required_markers = int(np.ceil(num_markers * max_missing_allowed))
-    bad_samples = (sample_missing_count > (num_markers * max_missing_allowed))
-    clean_markers = clean_markers.drop(clean_markers.columns[bad_samples], axis=1)
-    clean_pheno = clean_pheno[~bad_samples]
-    
-    # Remove markers with many missing values calls.
-    marker_missing_count = clean_markers.T.isnull().sum()
-    num_samples = len(clean_markers.columns)
-    max_missing_allowed = 1. - REQUIRED_MARKER_CALL_PROPORTION
-    required_samples = int(np.ceil(num_samples * max_missing_allowed))
-    bad_markers = (marker_missing_count > (num_samples * max_missing_allowed))
-    clean_markers = clean_markers[~bad_markers]
-
-    # Impute missing values with the mean for that column.
-    clean_markers = clean_markers.fillna(clean_markers.mean())
-
-    # Reset all indices to avoid future indexing loc/iloc confusion.
-    clean_pheno = clean_pheno.reset_index(drop=True)
-    clean_markers = clean_markers.reset_index(drop=True)
-
-    return clean_pheno, clean_markers
 
 def run_predictors(prediction_functions, backend=SINGLE_CORE_BACKEND, random_seed=0, runs=1, retry_nans=False):
     """
@@ -107,8 +87,6 @@ def run_predictors(prediction_functions, backend=SINGLE_CORE_BACKEND, random_see
     Returns the accuracies of the functions as list of arrays
     ordered by function.
     """
-    clean_pheno, clean_markers = _get_clean_data()
-
     # Set up the parameters for processing.
     pred_func_idxs = range(len(prediction_functions))
     accuracy_results = []
@@ -118,19 +96,18 @@ def run_predictors(prediction_functions, backend=SINGLE_CORE_BACKEND, random_see
             for fold_idx in range(NUM_FOLDS):
                 identifier = (fold_idx, prediction_function_idx)
                 prediction_function = prediction_functions[prediction_function_idx]
-                params = ( clean_markers, clean_pheno, prediction_function
-                         , random_seed, identifier, retry_nans)
+                params = (prediction_function, random_seed, identifier, retry_nans)
                 job_params.append(params)
 
         # Run the jobs and return a tuple of the accuracy and the id (which is also a tuple).
-        if backend == JOBLIB_BACKEND:
-            accuracies = _run_joblib(job_params)
-        elif backend == CELERY_BACKEND:
+        if backend == PARALLEL_BACKEND and get_use_celery():
             accuracies = _run_celery(job_params)
+        elif backend == PARALLEL_BACKEND:
+            accuracies = _run_joblib(job_params)
         elif backend == SINGLE_CORE_BACKEND:
             accuracies = _run_debug(job_params)
         else:
-            print('Unsupported Processing Backend')
+            print('Unsupported Backend Settings.')
             sys.exit(1)
         accuracy_results.append(accuracies)
         random_seed = np.random.randint(MIN_INT, MAX_INT) # New seed to obtain new data folds this run.
@@ -156,4 +133,3 @@ def run_predictors(prediction_functions, backend=SINGLE_CORE_BACKEND, random_see
     # still return the accuracies grouped by which prediction
     # function ran them.
     return map(lambda x: map(lambda y: y[ACCURACY_IDX], x), grouped)     
-

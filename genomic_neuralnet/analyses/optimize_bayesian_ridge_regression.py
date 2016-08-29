@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-from genomic_neuralnet.config import JOBLIB_BACKEND
+from genomic_neuralnet.config import PARALLEL_BACKEND
 from genomic_neuralnet.methods import get_brr_prediction
 from genomic_neuralnet.analyses import run_optimization
 
@@ -13,7 +13,7 @@ def main():
     params = { 'alpha_1': alpha_1, 'alpha_2': alpha_2
              , 'lambda_1': lambda_1, 'lambda_2': lambda_2
              }
-    run_optimization(get_brr_prediction, params, 'optimal_brr.shelf', 'BRR', backend=JOBLIB_BACKEND)
+    run_optimization(get_brr_prediction, params, 'optimal_brr.shelf', 'BRR', backend=PARALLEL_BACKEND)
 
 if __name__ == '__main__':
     main()

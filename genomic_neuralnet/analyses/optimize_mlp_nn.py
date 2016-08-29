@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-from genomic_neuralnet.config import SINGLE_CORE_BACKEND, JOBLIB_BACKEND
+from genomic_neuralnet.config import SINGLE_CORE_BACKEND, PARALLEL_BACKEND
 from genomic_neuralnet.methods import get_net_prediction
 from genomic_neuralnet.analyses import run_optimization, HIDDEN, EPOCHS, \
                                        DOUBLE_MULTIPLIER
@@ -14,7 +14,7 @@ def main():
              , 'epochs'    : (EPOCHS,)
              }
 
-    backend = JOBLIB_BACKEND
+    backend = PARALLEL_BACKEND
     if get_is_on_gpu() or get_is_time_stats() or get_should_plot():
         backend = SINGLE_CORE_BACKEND
 

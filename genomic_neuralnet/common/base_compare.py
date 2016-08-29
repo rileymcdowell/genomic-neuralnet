@@ -4,12 +4,14 @@ import numpy as np
 import scipy.stats as sps
 
 from genomic_neuralnet.config import NUM_FOLDS
+from genomic_neuralnet.common.read_clean_data import get_clean_data
 
-def try_predictor(markers, pheno, prediction_function, random_seed, id_val=None, retry_nans=False):
+def try_predictor(prediction_function, random_seed, id_val=None, retry_nans=False):
     """
     Pass in markers, phenotypes, and a list of prediction functions.
     Returns the prediction accuracy (pearson r) relative to measured phenotype. 
     """
+    markers, pheno = get_clean_data()
 
     # Re-seed the generator.
     np.random.seed(random_seed)

@@ -11,13 +11,10 @@ CPU_CORES = joblib.cpu_count()
 NUM_FOLDS = 5
 
 # Pick a processing backend for the modeling.
-CELERY_BACKEND = 'celery'
-JOBLIB_BACKEND = 'joblib'
+PARALLEL_BACKEND = 'parallel'
 SINGLE_CORE_BACKEND = 'single-core'
 
 MAX_EPOCHS = 1000
 CONTINUE_EPOCHS = 1000
 USE_ARAC = False
 TRY_CONVERGENCE = False
-
-INIT_CELERY = False # Must be True to use celery backend.

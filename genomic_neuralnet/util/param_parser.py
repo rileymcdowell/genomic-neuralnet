@@ -19,6 +19,7 @@ _parser.add_argument('--gpu', action='store_true', help='Run on GPU if available
 _parser.add_argument('--gpux', action='store_true', help=SUPPRESS) # Hidden argument for GPU paralellism.
 _parser.add_argument('--time-stats', action='store_true', help='Print json timing stats during a dry run')
 _parser.add_argument('--plot', action='store_true', help='Create many convergence plots during a dry run')
+_parser.add_argument('--use-celery', action='store_true', help='Use celery backend')
 
 _arguments = None
 def get_arguments():
@@ -85,6 +86,11 @@ def _handle_show_stats_option(args):
         exit()
     else:    
         return 
+
+def get_use_celery():
+    """ Should we use the celery training backend """
+    args = get_arguments()
+    return args.use_celery
 
 def get_should_force():
     """ Should force re-training of model. """
