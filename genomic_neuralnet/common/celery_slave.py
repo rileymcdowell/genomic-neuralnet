@@ -38,9 +38,13 @@ def load_and_clear_cache(id_nums):
         os.unlink(file_path)
 
 def get_num_workers():
-    num_workers = 0
-    for instance, stats in ctrl.Control(app).inspect().stats().iteritems():
-        num_workers += stats['pool']['max-concurrency']
+    stats_dict = ctrl.Control(app).inspect().stats()
+    if stats_dict is None:
+        return 0
+    else:
+        num_workers = 0
+        for instance, stats in stats_dict.iteritems():
+            num_workers += stats['pool']['max-concurrency']
     return num_workers
 
 def get_queue_length():
