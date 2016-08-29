@@ -17,7 +17,7 @@ def _get_hidden_sizes():
         return _one_layer_nets + _two_layer_nets + _three_layer_nets
 
 RUNS = 2
-EPOCHS = 1000 # Should be divisible by 1000.
+EPOCHS = 100000 # Should be divisible by 1000.
 HIDDEN = _get_hidden_sizes()
 DROPOUT = (0.2, 0.3, 0.4, 0.5)
 WEIGHT_DECAY = (1e-7, 1e-6, 1e-5, 1e-4)
