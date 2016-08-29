@@ -1,7 +1,5 @@
 import joblib
 
-TRAIN_SIZE = 0.9
-
 # Set the number of calls a marker must have to participate in analysis.
 REQUIRED_MARKER_CALL_PROPORTION = 0.8
 # Set the number of markers a sample must have to participate in analysis.
@@ -10,7 +8,7 @@ REQUIRED_MARKERS_PER_SAMPLE_PROP = 0.5
 # Set the number of cores to use for processing. 
 CPU_CORES = joblib.cpu_count()
 # The number of folds to use for cross-validation.
-NUM_FOLDS = 10
+NUM_FOLDS = 5
 
 # Pick a processing backend for the modeling.
 CELERY_BACKEND = 'celery'

@@ -5,7 +5,7 @@ from sklearn.utils.extmath import cartesian
 from genomic_neuralnet.config import NUM_FOLDS
 from genomic_neuralnet.util import get_is_time_stats
 
-_base_numbers = np.arange(1, 7)
+_base_numbers = np.arange(1, 9, 2)
 _one_layer_nets = [ (3**x,) for x in _base_numbers] 
 _two_layer_nets = [ (2**(x+1), 2**x) for x in _base_numbers]
 _three_layer_nets = [ (2**(x+2), 2**(x+1), 2**x) for x in _base_numbers]
@@ -16,7 +16,7 @@ def _get_hidden_sizes():
     else:
         return _one_layer_nets + _two_layer_nets + _three_layer_nets
 
-RUNS = 3 
+RUNS = 2
 EPOCHS = 100000 # Should be divisible by 1000.
 HIDDEN = _get_hidden_sizes()
 DROPOUT = (0.2, 0.3, 0.4, 0.5)
@@ -41,9 +41,12 @@ def main():
     hidden = len(_get_hidden_sizes())
     format_tuple = hidden, len(DROPOUT), len(WEIGHT_DECAY)
     print('N: {} * {} * {}'.format(*format_tuple))
-    print('N: {{{}, {}, {}}}'.format(*tuple(np.cumprod(format_tuple))))
+    print('N: {}'.format(np.prod(format_tuple)))
 
     print('Containing {} runs of {} folds each'.format(RUNS, NUM_FOLDS))
+
+
+    print('Total Fits: {}'.format(np.prod(np.array(format_tuple + (RUNS,) + (NUM_FOLDS,)))))
 
 
     assert len(_one_layer_nets) == len(_two_layer_nets)

@@ -3,7 +3,7 @@ import sys
 import numpy as np
 import scipy.stats as sps
 
-from genomic_neuralnet.config import TRAIN_SIZE, NUM_FOLDS
+from genomic_neuralnet.config import NUM_FOLDS
 
 def try_predictor(markers, pheno, prediction_function, random_seed, id_val=None, retry_nans=False):
     """

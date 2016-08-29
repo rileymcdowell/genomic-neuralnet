@@ -5,6 +5,9 @@
 # the code in this library.
 ###################################################
 
+USER_NAME=ec2-user
+USER_HOME=/home/$USER_NAME
+
 # Start out by getting up-to-date.
 yum update -y
 
@@ -44,17 +47,25 @@ echo '/usr/local/lib' > local_lib.conf
 ldconfig
 popd
 
+################################
+# Install source to user's home. 
+################################
+
 # Install simplennet dependency.
-git clone https://github.com/rileymcdowell/simplennet.git
+pushd $USER_HOME 
+sudo -u $USER_NAME 'git clone https://github.com/rileymcdowell/simplennet.git'
 pushd simplennet/
-#pip install -r requirements.txt
+pip install -r requirements.txt
 python setup.py develop
 popd
 
 # Install this library.
-git clone https://github.com/rileymcdowell/genomic-neuralnet.git
+sudo -u $USER_NAME 'git clone https://github.com/rileymcdowell/genomic-neuralnet.git'
 pushd genomic-neuralnet/
 pip install -r requirements.txt
 python setup.py develop
 popd
+
+popd # Leave the user's home.
+
 
