@@ -49,7 +49,7 @@ def get_num_workers():
 
 def get_queue_length():
     conn = redis.StrictRedis(_host)
-    return conn.llen('parallel_predictors')
+    return conn.llen('celery')
 
 def main():
     # Start the worker.
