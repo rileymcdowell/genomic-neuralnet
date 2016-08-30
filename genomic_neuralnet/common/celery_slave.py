@@ -21,9 +21,12 @@ broker = 'redis://{}/0'.format(_host)
 app = Celery(name, backend=backend, broker=broker)
 celery_try_predictor = app.task(try_predictor)
 
+app.config_from_object('celeryconfig')
+
 # Wait up to 15 minutes for each iteration.
 os.environ['BROKER_TRANSPORT_OPTIONS'] = "{'visibility_timeout': 900}"
 os.environ['CELERYD_PREFETCH_MULTIPLIER'] = "1" # Do not pre-fetch work.
+os.environ['CELERY_ACKS_LATE'] = 'True'
 
 _cache_dir = os.path.expanduser('~/work_cache')
 if not os.path.isdir(_cache_dir):
@@ -55,7 +58,7 @@ def get_queue_length():
 
 def main():
     # Start the worker.
-    app.worker_main(['--loglevel=INFO', '-Ofair']) 
+    app.worker_main(['worker', '--loglevel=INFO', '-Ofair']) 
 
 if __name__ == '__main__':
     main()
