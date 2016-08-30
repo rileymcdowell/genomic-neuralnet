@@ -1,6 +1,6 @@
 
 # Wait up to 15 minutes for each iteration.
-BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 900}
+BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 3600} # Seconds = 1 hour.
 # Do not pre-fetch work.
 CELERYD_PREFETCH_MULTIPLIER = 1 
 # Do not ack messages until work is completed.

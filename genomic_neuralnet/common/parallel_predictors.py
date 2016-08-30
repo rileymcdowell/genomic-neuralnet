@@ -59,10 +59,10 @@ def _run_celery(job_params):
         remaining_jobs = (len(job_params)-1) - job_idx
         num_to_add = np.min([desired_messages - queue_len, remaining_jobs])
         if get_verbose():
-            print('{} Workers'.format(workers))
-            print('{} Messages'.format(queue_len))
-            print('{} Desired'.format(desired_messages))
+            print('{} Workers / Desired Messages'.format(workers))
+            print('{} In Flight'.format(len(results)))
             print('{} Completed'.format(done))
+            print('{} Not Started'.format(len(job_params) - len(results) - done))
             print('Adding {} messages'.format(num_to_add))
         # Add messages to fill queue.
         for _ in range(num_to_add):
@@ -87,7 +87,7 @@ def _run_celery(job_params):
         else:
             # Wait a bit while work gets done.
             print('Completed {} of {} cycles.'.format(done, len(job_params)))
-            time.sleep(5)
+            time.sleep(30) # One check every 30 seconds is plenty.
 
     accuracies = load_and_clear_cache(range(len(job_params)))
     return accuracies
