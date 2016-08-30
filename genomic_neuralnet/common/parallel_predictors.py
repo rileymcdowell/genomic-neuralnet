@@ -52,12 +52,14 @@ def _run_celery(job_params):
     while True:
         queue_len = get_queue_length()
         workers = get_num_workers()
-        desired_messages = workers * 2
-        num_to_add = desired_messages - queue_len 
+        # Keep putting messages on the queue until there
+        # is one message waiting for every worker.
+        desired_messages = workers
+        # Account for exhausting the work queue.
+        remaining_jobs = (len(job_params)-1) - job_idx
+        num_to_add = np.min([desired_messages - queue_len, remaining_jobs])
         # Add messages to fill queue.
         for _ in range(num_to_add):
-            if job_idx >= len(job_params):
-                break # Work queue exhausted.
             delayed = celery_try_predictor.delay(*job_params[job_idx])
             results[job_idx] = delayed
             job_idx += 1
