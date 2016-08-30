@@ -5,4 +5,6 @@ BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 900}
 CELERYD_PREFETCH_MULTIPLIER = 1 
 # Do not ack messages until work is completed.
 CELERY_ACKS_LATE = True
+# Stop warning me about PICKLE.
+CELERY_ACCEPT_CONTENT = ['pickle']
 
