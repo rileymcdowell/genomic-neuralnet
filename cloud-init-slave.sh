@@ -73,7 +73,7 @@ cat << EOF >> $USER_HOME/crontab.init
 HOME=/home/ec2-user
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-* * * * * flock -n $USER_HOME/ec2-user/celery_slave.lockfile python $USER_HOME/genomic-neuralnet/genomic_neuralnet/common/celery_slave.py &>> slave_worker.log
+* * * * * flock -n $USER_HOME/celery_slave.lockfile python $USER_HOME/genomic-neuralnet/genomic_neuralnet/common/celery_slave.py &>> slave_worker.log
 EOF
 
 sudo -u $USER_NAME crontab crontab.init
