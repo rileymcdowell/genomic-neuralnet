@@ -56,7 +56,7 @@ def _run_celery(job_params):
         # is one message waiting for every worker.
         desired_messages = workers
         # Account for exhausting the work queue.
-        remaining_jobs = (len(job_params)-1) - job_idx
+        remaining_jobs = len(job_params) - job_idx
         num_to_add = np.min([desired_messages - queue_len, remaining_jobs])
         if get_verbose():
             print('{} Workers / Desired Messages'.format(workers))
