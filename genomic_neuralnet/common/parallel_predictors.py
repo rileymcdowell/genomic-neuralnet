@@ -11,7 +11,7 @@ from genomic_neuralnet.config import REQUIRED_MARKER_CALL_PROPORTION, \
                                      REQUIRED_MARKERS_PER_SAMPLE_PROP
 from genomic_neuralnet.config import CPU_CORES, NUM_FOLDS
 from genomic_neuralnet.config import PARALLEL_BACKEND, SINGLE_CORE_BACKEND
-from genomic_neuralnet.util import get_markers_and_pheno, get_use_celery
+from genomic_neuralnet.util import get_markers_and_pheno, get_use_celery, get_verbose
 from genomic_neuralnet.common.read_clean_data import get_clean_data
 
 ACCURACY_IDX = 0
@@ -58,6 +58,11 @@ def _run_celery(job_params):
         # Account for exhausting the work queue.
         remaining_jobs = (len(job_params)-1) - job_idx
         num_to_add = np.min([desired_messages - queue_len, remaining_jobs])
+        if get_verbose():
+            print('{} Workers'.format(workers))
+            print('{} Messages'.format(queue_len))
+            print('{} Desired'.format(desired_messages))
+            print('Adding {} messages'.format(num_to_add))
         # Add messages to fill queue.
         for _ in range(num_to_add):
             delayed = celery_try_predictor.delay(*job_params[job_idx])
@@ -71,13 +76,17 @@ def _run_celery(job_params):
                 accs = result.get()
                 disk_cache(accs, key)
                 del results[key] # Stop tracking.
+                if get_verbose():
+                    print('Done with id {}'.format(key))
                 done += 1
         if done == len(job_params):
+            if get_verbose():
+                print('All done!')
             break # All done!
         else:
             # Wait a bit while work gets done.
             print('Completed {} of {} cycles.'.format(done, len(job_params)))
-            time.sleep(15)
+            time.sleep(5)
 
     accuracies = load_and_clear_cache(range(len(job_params)))
     return accuracies
