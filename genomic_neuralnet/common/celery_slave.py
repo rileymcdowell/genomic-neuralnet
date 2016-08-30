@@ -21,7 +21,7 @@ broker = 'redis://{}/0'.format(_host)
 app = Celery(name, backend=backend, broker=broker)
 celery_try_predictor = app.task(try_predictor)
 
-app.config_from_object('celeryconfig')
+app.config_from_object('genomic_neuralnet.common.celeryconfig')
 
 # Wait up to 15 minutes for each iteration.
 os.environ['BROKER_TRANSPORT_OPTIONS'] = "{'visibility_timeout': 900}"

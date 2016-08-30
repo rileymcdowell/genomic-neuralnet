@@ -62,6 +62,7 @@ def _run_celery(job_params):
             print('{} Workers'.format(workers))
             print('{} Messages'.format(queue_len))
             print('{} Desired'.format(desired_messages))
+            print('{} Completed'.format(done))
             print('Adding {} messages'.format(num_to_add))
         # Add messages to fill queue.
         for _ in range(num_to_add):
