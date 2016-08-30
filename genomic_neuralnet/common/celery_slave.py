@@ -55,7 +55,7 @@ def get_queue_length():
 
 def main():
     # Start the worker.
-    app.worker_main(['--loglevel=DEBUG']) 
+    app.worker_main(['--loglevel=INFO', '-Ofair']) 
 
 if __name__ == '__main__':
     main()
