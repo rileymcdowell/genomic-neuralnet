@@ -5,7 +5,7 @@ from genomic_neuralnet.analyses import run_optimization
 
 def main():
     params = {} 
-    run_optimization(get_lr_prediction, params, 'optimal_en.shelf', 'OLS')
+    run_optimization(get_lr_prediction, params, 'optimal_lr.shelf', 'OLS')
 
 if __name__ == '__main__':
     main()
