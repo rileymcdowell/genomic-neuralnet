@@ -143,6 +143,7 @@ def _get_initial_net(container, n_features, X, y):
 def get_net_prediction( train_data, train_truth, test_data, test_truth
                       , hidden=(5,), weight_decay=0.0, dropout_prob=0.0
                       , learning_rate=None, epochs=25, verbose=False
+                      , iter_id=None
                       ):
 
     container = NeuralNetContainer()

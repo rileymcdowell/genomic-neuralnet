@@ -20,7 +20,7 @@ def _train_nn(rbf_net, train_data, train_truth, centers):
     rbf_trainer = RbfTrainer(rbf_net)
     rbf_trainer.train_with_best_centers(train_data, train_truth[:,np.newaxis], centers)
 
-def get_rbf_nn_prediction(train_data, train_truth, test_data, test_truth, centers=8, spread=1): 
+def get_rbf_nn_prediction(train_data, train_truth, test_data, test_truth, centers=8, spread=1, iter_id=0): 
     train_truth = train_truth[:,np.newaxis]
     test_truth = test_truth[:,np.newaxis]
 

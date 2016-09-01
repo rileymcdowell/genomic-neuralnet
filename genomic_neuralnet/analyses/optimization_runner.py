@@ -26,8 +26,14 @@ dryrun = get_is_dryrun()
 
 INDEX_SHELF = 'index.shelf'
 
-def _get_parameter_set(dicts):
-    return (dict(zip(dicts, x)) for x in product(*dicts.itervalues()))
+def _get_parameter_set(dicts, sample_size_multiplier):
+    to_return = []
+    for iter_id in range(sample_size_multiplier):
+        param_dicts = [dict(zip(dicts, x)) for x in product(*dicts.itervalues())]
+        for d in param_dicts: 
+            d['iter_id'] = iter_id
+        to_return.extend(list(param_dicts))
+    return to_return
 
 def _record_in_master_shelf(method_name, shelf_name):
     shelf_path = os.path.join('shelves', INDEX_SHELF)
@@ -60,7 +66,7 @@ def _get_shelf_path(shelf_name):
 
 
 def _do_dryrun(function, params, backend, retry_nans):
-    first_params = list(_get_parameter_set(params))[0]
+    first_params = list(_get_parameter_set(params, 1))[0]
     print('params:', first_params)
     final_func = partial(function, **first_params)
     accuracy = run_predictors([final_func], backend=backend, runs=RUNS, retry_nans=retry_nans)[0]
@@ -86,32 +92,25 @@ def run_optimization( function, params, shelf_name, method_name,
 
     start = time.time()
 
-    df_list = []
-    for mult_idx in range(sample_size_multiplier):
-        param_list = list(_get_parameter_set(params))
-        df = pd.DataFrame(param_list)
-        prediction_functions = map(lambda x: partial(function, **x), param_list)
-        accuracies = run_predictors( prediction_functions, backend=backend,
-                                     random_seed=mult_idx, runs=RUNS,
-                                     retry_nans=retry_nans
-                                   )
+    param_list = list(_get_parameter_set(params, sample_size_multiplier))
+    df = pd.DataFrame(param_list)
+    prediction_functions = map(lambda x: partial(function, **x), param_list)
+    accuracies = run_predictors( prediction_functions, backend=backend,
+                                 runs=RUNS, retry_nans=retry_nans
+                               )
 
-        means = []
-        std_devs = []
-        raw_results = []
-        for param_collection, accuracy_arr in zip(param_list, accuracies):
-            means.append(np.mean(accuracy_arr))
-            # Lose 1 degree of freedom b/c we estimated mean also.
-            std_devs.append(np.std(accuracy_arr, ddof=1))
-            raw_results.append(accuracy_arr)
+    means = []
+    std_devs = []
+    raw_results = []
+    for param_collection, accuracy_arr in zip(param_list, accuracies):
+        means.append(np.mean(accuracy_arr))
+        # Lose 1 degree of freedom b/c we estimated mean also.
+        std_devs.append(np.std(accuracy_arr, ddof=1))
+        raw_results.append(accuracy_arr)
 
-        df['mean'] = means
-        df['std_dev'] = std_devs
-        df['raw_results'] = raw_results # Stores one list per single datagrid cell.
-        df['iter_id'] = mult_idx
-        df_list.append(df)
-
-    df = pd.concat(df_list)
+    df['mean'] = means
+    df['std_dev'] = std_devs
+    df['raw_results'] = raw_results # Stores one list per single datagrid cell.
 
     if verbose:
         print(df)
@@ -137,5 +136,4 @@ def run_optimization( function, params, shelf_name, method_name,
     print()
 
     print('Done.')
-
 

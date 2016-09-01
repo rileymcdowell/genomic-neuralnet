@@ -14,7 +14,8 @@ echo '$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$'
 
 # Loop over every optimization function for every species and trait.
 # This will populate shelf database files which store the output of the optimizations.
-for file in $( ls optimize*nn.py ) ; do
+#for file in $( ls optimize*nn.py ) ; do
+for file in $( ls | grep 'optimize' | grep 'py' | grep -v 'nn' ) ; do
     for species in ${SPECIES[@]} ; do
         for trait in $(python $file --species $species --list ) ; do
             echo '$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$'
@@ -28,7 +29,7 @@ for file in $( ls optimize*nn.py ) ; do
                 #python $file --species $species --trait $trait --gpu
                 #sleep 10 # Give the GPU time to release memory.
                 # Then re-train on CPU to compare times.
-                python $file --species $species --trait $trait --force
+                python $file --species $species --trait $trait #--force
             else 
                 # Train others in normal mode.
                 python $file --species $species --trait $trait
