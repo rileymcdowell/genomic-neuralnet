@@ -56,21 +56,23 @@ def max_bold_format(max_vals, num):
     else:
         return '{:0.2f}'.format(num)
 
+LEVEL_ORDER = ['OLS', 'RR', 'LASSO', 'RBF', 'EN', 'BRR', 'N', 'NWD', 'NDO', 'NWDDO']
+
 def write_latex(df):
-
-    fig_path = os.path.join(out_dir, 'model_comparison.tex')
-
+    
     n_cols = len(df.columns)
 
     lines = []
-    column_format = ' '.join(('m{4em}',) * n_cols)
-    lines.append('\\begin{{tabularx}}{{\\textwidth}}{{ X X {} }}'.format(column_format))
+    column_format = ' '.join(('m{3em}',) * n_cols)
+    lines.append('\\begin{{tabularx}}{{\\textwidth}}{{ m{{6em}} X {} }}'.format(column_format))
 
     # Write multi-level headers.
     lines.append('\\hline')
     header1 = '\\multicolumn{{{}}}{{c}}{{Accuracy}}'.format(n_cols)
     lines.append('\\header & & {} \\\\'.format(header1))
-    header2 = ' & '.join(df.columns.levels[1])
+    columns = list(df.columns.levels[1])
+    columns.sort(key=lambda x: LEVEL_ORDER.index(x))
+    header2 = ' & '.join(columns)
     lines.append('\\header & & {} \\\\'.format(header2))
     lines.append('\\hline')
     header_3 = ' '.join(('&',)*n_cols)
@@ -78,6 +80,8 @@ def write_latex(df):
     # Write table data. 
     idx = 0
     for (species, trait), row in df.iterrows():
+        row = row.reset_index(drop=True, level=0)
+        row = row.loc[LEVEL_ORDER]
         row_data = []
         if idx % 2 == 0:
             row_data.append(species)
@@ -88,9 +92,10 @@ def write_latex(df):
         max_model = row.max()
         for val in row.values:
             if val == max_model:
-                row_data.append('\\textbf{{{:0.2f}}}'.format(val))
+                row_data.append('\\underline{{{:0.3f}}}'.format(val))
             else:
-                row_data.append('{:0.2f}'.format(val))
+                row_data.append('{:0.3f}'.format(val))
+
 
         lines.append(' & '.join(row_data) + ' \\\\')
         if idx % 2 == 1:
@@ -100,6 +105,8 @@ def write_latex(df):
     # Write end of table.
     lines.append('\\end{tabularx}')
 
+    # Write table to file.
+    fig_path = os.path.join(out_dir, 'model_comparison.tex')
     with open(fig_path, 'w') as f:
         f.write('\n'.join(lines))
 
@@ -109,12 +116,13 @@ def make_table(model_df):
     model_df = model_df.set_index(keys=['Species', 'Trait', 'Model'])
     model_df = model_df.unstack()
 
-    write_latex(model_df)
+    return model_df
     
 def main():
     data = get_all_model_data() 
     model_df = make_model_dataframe(data)
-    make_table(model_df)
+    model_df = make_table(model_df)
+    write_latex(model_df)
 
 if __name__ == '__main__':
     main()
