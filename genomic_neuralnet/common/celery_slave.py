@@ -38,9 +38,15 @@ def disk_cache(result, id_num):
         pickle.dump(result, f)
 
 def load_and_clear_cache(id_nums):
+    accs = []
+    for id_num in id_nums:
+        file_path = os.path.join(_cache_dir, '{}_out.pkl'.format(id_num))
+        with open(file_path, 'rb') as f:
+            accs.append(pickle.load(f))
     for id_num in id_nums:
         file_path = os.path.join(_cache_dir, '{}_out.pkl'.format(id_num))
         os.unlink(file_path)
+    return accs
 
 def get_num_workers():
     stats_dict = ctrl.Control(app).inspect().stats()
