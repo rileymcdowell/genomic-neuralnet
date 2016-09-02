@@ -87,7 +87,7 @@ def _run_celery(job_params):
         else:
             # Wait a bit while work gets done.
             print('Completed {} of {} cycles.'.format(done, len(job_params)))
-            time.sleep(30) # One check every 30 seconds is plenty.
+            time.sleep(60) # One check every minute is plenty.
 
     accuracies = load_and_clear_cache(range(len(job_params)))
     return accuracies
