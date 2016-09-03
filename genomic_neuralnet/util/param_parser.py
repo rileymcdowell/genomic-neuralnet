@@ -91,10 +91,10 @@ def _handle_show_stats_option(args):
 def get_reuse_celery_cache():
     """ Should we use the celery training backend """
     args = get_arguments()
-    if args.reuse-celery-cache and (not args.use_celery):
+    if args.reuse_celery_cache and (not args.use_celery):
         msg = 'Must use celery backend when using celery cache option.'
         _parser.error(msg)    
-    return args.reuse-celery-cache
+    return args.reuse_celery_cache
 
 def get_use_celery():
     """ Should we use the celery training backend """
