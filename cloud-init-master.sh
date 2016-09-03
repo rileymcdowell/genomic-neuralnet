@@ -88,7 +88,7 @@ HOME=/home/ec2-user
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 */20 * * * * aws s3 sync $USER_HOME/genomic-neuralnet/genomic_neuralnet/analyses/shelves/ s3://instance-cache &>> $USER_HOME/cache-sync.log
-* * * * * flock -n $USER_HOME/redis.lockfile redis-server --maxclients 128 --bind 0.0.0.0 &>> $USER_HOME/redis-server.log
+* * * * * flock -n $USER_HOME/redis.lockfile sh -c 'redis-server --maxclients 2048 --bind 0.0.0.0' &>> $USER_HOME/redis-server.log
 EOF
 
 sudo -u $USER_NAME crontab crontab.init
