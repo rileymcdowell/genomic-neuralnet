@@ -20,6 +20,7 @@ _parser.add_argument('--gpux', action='store_true', help=SUPPRESS) # Hidden argu
 _parser.add_argument('--time-stats', action='store_true', help='Print json timing stats during a dry run')
 _parser.add_argument('--plot', action='store_true', help='Create many convergence plots during a dry run')
 _parser.add_argument('--use-celery', action='store_true', help='Use celery backend')
+_parser.add_argument('--reuse-celery-cache', action='store_true', help='Pick up celery cache where it left off')
 
 _arguments = None
 def get_arguments():
@@ -86,6 +87,14 @@ def _handle_show_stats_option(args):
         exit()
     else:    
         return 
+
+def get_reuse_celery_cache():
+    """ Should we use the celery training backend """
+    args = get_arguments()
+    if args.reuse-celery-cache and (not args.use_celery):
+        msg = 'Must use celery backend when using celery cache option.'
+        _parser.error(msg)    
+    return args.reuse-celery-cache
 
 def get_use_celery():
     """ Should we use the celery training backend """

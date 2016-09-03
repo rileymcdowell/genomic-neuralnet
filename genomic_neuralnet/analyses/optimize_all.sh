@@ -26,13 +26,13 @@ for file in $( ls | grep 'optimize' | grep 'py' | grep -v 'nn' ) ; do
             if [ $? -eq 0 ] ; then
                 # Train neural nets on GPU.
                 #sleep 10 # Give the GPU time to release memory.
-                #python $file --species $species --trait $trait --gpu
+                #python -u $file --species $species --trait $trait --gpu
                 #sleep 10 # Give the GPU time to release memory.
                 # Then re-train on CPU to compare times.
-                python $file --species $species --trait $trait #--force
+                python -u $file --species $species --trait $trait --reuse-celery-cache #--force
             else 
                 # Train others in normal mode.
-                python $file --species $species --trait $trait
+                python -u $file --species $species --trait $trait
             fi
 
             echo '####################################################'

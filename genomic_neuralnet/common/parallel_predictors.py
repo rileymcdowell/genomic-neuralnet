@@ -11,7 +11,8 @@ from genomic_neuralnet.config import REQUIRED_MARKER_CALL_PROPORTION, \
                                      REQUIRED_MARKERS_PER_SAMPLE_PROP
 from genomic_neuralnet.config import CPU_CORES, NUM_FOLDS
 from genomic_neuralnet.config import PARALLEL_BACKEND, SINGLE_CORE_BACKEND
-from genomic_neuralnet.util import get_markers_and_pheno, get_use_celery, get_verbose
+from genomic_neuralnet.util import get_markers_and_pheno, get_use_celery, \
+                                   get_verbose, get_reuse_celery_cache
 from genomic_neuralnet.common.read_clean_data import get_clean_data
 
 ACCURACY_IDX = 0
@@ -44,7 +45,7 @@ def _run_debug(job_params):
 def _run_celery(job_params):
     from genomic_neuralnet.common.celery_slave \
         import celery_try_predictor, get_num_workers, get_queue_length, \
-               disk_cache, load_and_clear_cache
+               disk_cache, load_and_clear_cache, is_disk_cached
                
     job_idx = 0
     results = {} 
@@ -66,6 +67,11 @@ def _run_celery(job_params):
             print('Adding {} messages'.format(num_to_add))
         # Add messages to fill queue.
         for _ in range(num_to_add):
+            if get_reuse_celery_cache():
+                if is_disk_cached(job_idx):
+                    done += 1
+                    job_idx += 1
+                    continue
             delayed = celery_try_predictor.delay(*job_params[job_idx])
             results[job_idx] = delayed
             job_idx += 1

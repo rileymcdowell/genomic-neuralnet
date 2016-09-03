@@ -23,11 +23,6 @@ celery_try_predictor = app.task(try_predictor)
 
 app.config_from_object('genomic_neuralnet.common.celeryconfig')
 
-# Wait up to 15 minutes for each iteration.
-os.environ['BROKER_TRANSPORT_OPTIONS'] = "{'visibility_timeout': 900}"
-os.environ['CELERYD_PREFETCH_MULTIPLIER'] = "1" # Do not pre-fetch work.
-os.environ['CELERY_ACKS_LATE'] = 'True'
-
 _cache_dir = os.path.expanduser('~/work_cache')
 if not os.path.isdir(_cache_dir):
     os.makedirs(_cache_dir)
@@ -36,6 +31,10 @@ def disk_cache(result, id_num):
     file_path = os.path.join(_cache_dir, '{}_out.pkl'.format(id_num))
     with open(file_path, 'wb') as f: 
         pickle.dump(result, f)
+
+def is_disk_cached(id_num):
+    file_path = os.path.join(_cache_dir, '{}_out.pkl'.format(id_num))
+    return os.path.exists(file_path)
 
 def load_and_clear_cache(id_nums):
     accs = []
