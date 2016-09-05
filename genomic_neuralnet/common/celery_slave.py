@@ -63,7 +63,7 @@ def get_queue_length():
 
 def main():
     # Start the worker.
-    args = ['worker', '--loglevel=INFO', '-Ofair']
+    args = ['worker', '--loglevel=INFO', '-Ofair', '--without-gossip', '--without-mingle']
     if '--gpu' in sys.argv:
         print('Configuring worker to use GPU training.')
         os.environ['PATH'] = os.environ.get('PATH', '') + os.pathsep + '/usr/local/cuda/bin'
