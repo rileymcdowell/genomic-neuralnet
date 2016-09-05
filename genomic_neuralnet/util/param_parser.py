@@ -58,7 +58,9 @@ def _maybe_set_parallel_args(args):
     parallelism option no matter when Theano is
     imported.
     """
-    if args.gpu and (not args.gpux):  
+    is_celery = 'celery_slave.py' in sys.argv
+
+    if (not is_celery) and args.gpu and (not args.gpux):
         # Set the GPU environment.
         os.environ['THEANO_FLAGS'] = 'floatX=float32,device=gpu,' \
                                      'lib.cnmem=0.9,nvcc.fastmath=True,' \
