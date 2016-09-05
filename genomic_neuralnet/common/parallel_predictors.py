@@ -74,7 +74,7 @@ def _run_celery(job_params):
                     done += 1
                     job_idx += 1
                     # Skip what's already done.
-            if job_idx >= len(job_idx):
+            if job_idx >= len(job_params):
                 continue # Don't run past the end of the list of parameters to run.
             else:
                 delayed = celery_try_predictor.delay(*job_params[job_idx])
