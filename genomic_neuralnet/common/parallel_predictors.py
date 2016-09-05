@@ -12,7 +12,8 @@ from genomic_neuralnet.config import REQUIRED_MARKER_CALL_PROPORTION, \
 from genomic_neuralnet.config import CPU_CORES, NUM_FOLDS
 from genomic_neuralnet.config import PARALLEL_BACKEND, SINGLE_CORE_BACKEND
 from genomic_neuralnet.util import get_markers_and_pheno, get_use_celery, \
-                                   get_verbose, get_reuse_celery_cache
+                                   get_verbose, get_reuse_celery_cache, \
+                                   get_celery_gpu
 from genomic_neuralnet.common.read_clean_data import get_clean_data
 
 ACCURACY_IDX = 0
@@ -93,7 +94,7 @@ def _run_celery(job_params):
         else:
             # Wait a bit while work gets done.
             print('Completed {} of {} cycles.'.format(done, len(job_params)))
-            time.sleep(60) # One check every minute is plenty.
+            time.sleep(10) # One check every ten seconds is plenty.
 
     accuracies = load_and_clear_cache(range(len(job_params)))
     return accuracies
@@ -114,7 +115,7 @@ def run_predictors(prediction_functions, backend=SINGLE_CORE_BACKEND, random_see
             for fold_idx in range(NUM_FOLDS):
                 identifier = (fold_idx, prediction_function_idx)
                 prediction_function = prediction_functions[prediction_function_idx]
-                params = (prediction_function, random_seed, identifier, retry_nans)
+                params = (prediction_function, random_seed, identifier, retry_nans, get_celery_gpu())
                 job_params.append(params)
 
         # Run the jobs and return a tuple of the accuracy and the id (which is also a tuple).

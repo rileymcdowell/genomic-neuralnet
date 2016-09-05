@@ -7,13 +7,14 @@ import numpy as np
 
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, Lambda
-from keras.optimizers import Adam
+from keras.optimizers import Nadam as Trainer
+#from keras.optimizers import Adam as Trainer
 from keras.regularizers import WeightRegularizer
-from keras.callbacks import EarlyStopping, Callback
+from keras.callbacks import EarlyStopping, Callback, LearningRateScheduler
 from sklearn.preprocessing import MinMaxScaler 
 from genomic_neuralnet.util import get_is_time_stats, get_should_plot
 
-TIMING_EPOCHS = 10000
+TIMING_EPOCHS = 12000
 
 class LossHistory(Callback):
     def on_train_begin(self, logs={}):
@@ -70,9 +71,10 @@ def _build_nn(net_container, n_features):
     model.add(Activation('linear'))
 
     if not net_container.learning_rate is None:
-        optimizer = Adam(lr=net_container.learning_rate)
+        optimizer = Trainer(lr=net_container.learning_rate)
     else:
-        optimizer = Adam(lr=0.0001)
+        #optimizer = Trainer(lr=0.0001)
+        optimizer = Trainer()
 
     model.compile( optimizer=optimizer
                  , loss='mean_squared_error'
@@ -80,21 +82,34 @@ def _build_nn(net_container, n_features):
 
     net_container.model = model
 
-def _train_net(container, X, y, override_epochs=None, early_termination=True):
+
+def _train_net(container, X, y, override_epochs=None, is_check_train=False):
     """ 
     Given a container, X (inputs), and y (outputs) train the network in the container. 
-    If override_epochs is an integer, just run that many epochs.
-    If early_termination is false, always run to the total number of epochs.
+
+    * If override_epochs is an integer, just run that many epochs.
+
+    * The is_check_train parameter signifies that this training is a quick check to make 
+      sure that the network is properly initialized and that the output error 
+      is decreasing. The best "check trained" network will be passed in again
+      for an additional full set of training epochs.
     """
     model = container.model
     epochs = override_epochs if (not override_epochs is None) else container.epochs
     verbose = int(container.verbose)
 
+    def rate_func(epoch):
+        if epochs - epoch == 2000:
+            # Settle down during last 2000 epochs.
+            model.optimizer.lr.set_value(model.optimizer.lr.get_value()/4.0)
+        if epochs - epoch == 500:
+            # Go a bit further in last 500 epochs.
+            model.optimizer.lr.set_value(model.optimizer.lr.get_value()/4.0)
+        return float(model.optimizer.lr.get_value())
+     
+    lr_scheduler = LearningRateScheduler(rate_func)
     loss_history = LossHistory()
-    callbacks = [loss_history]
-    if early_termination:
-        early_stopping = EarlyStopping(monitor='loss', patience=250, mode='min')
-        callbacks.append(early_stopping)
+    callbacks = [loss_history, lr_scheduler]
 
     model.fit( X, 
                y, 
@@ -104,7 +119,7 @@ def _train_net(container, X, y, override_epochs=None, early_termination=True):
                callbacks=callbacks
              ) 
 
-    if not override_epochs and not early_termination and container.plot:
+    if (isinstance(override_epochs, int)) and (not is_check_train) and container.plot:
         # Plot, but only if this is not overriden epochs.
         import matplotlib.pyplot as plt
         plt.plot(range(len(loss_history.losses)), loss_history.losses)
@@ -133,8 +148,8 @@ def _get_initial_net(container, n_features, X, y):
 
     losses = []
     for candidate in candidates:
-        # Train each candidate for 10 epochs.
-        loss = _train_net(candidate, X, y, override_epochs=100, early_termination=False)
+        # Train each candidate for 100 epochs.
+        loss = _train_net(candidate, X, y, override_epochs=100, is_check_train=True)
         losses.append(loss)
 
     best_idx = np.argmin(losses)
@@ -170,7 +185,7 @@ def get_net_prediction( train_data, train_truth, test_data, test_truth
     # Train the network.
     if collect_time_stats:
         # Train a specific time, never terminating early.
-        _train_net(container, train_data, train_y, override_epochs=TIMING_EPOCHS, early_termination=False)
+        _train_net(container, train_data, train_y, override_epochs=TIMING_EPOCHS, is_check_train=False)
     else: 
         # Normal training, enable all heuristics.
         _train_net(container, train_data, train_y)

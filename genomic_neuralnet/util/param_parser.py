@@ -20,6 +20,7 @@ _parser.add_argument('--gpux', action='store_true', help=SUPPRESS) # Hidden argu
 _parser.add_argument('--time-stats', action='store_true', help='Print json timing stats during a dry run')
 _parser.add_argument('--plot', action='store_true', help='Create many convergence plots during a dry run')
 _parser.add_argument('--use-celery', action='store_true', help='Use celery backend')
+_parser.add_argument('--celery-gpu', action='store_true', help='Tell celery to run GPU training.')
 _parser.add_argument('--reuse-celery-cache', action='store_true', help='Pick up celery cache where it left off')
 
 _arguments = None
@@ -60,7 +61,7 @@ def _maybe_set_parallel_args(args):
     if args.gpu and (not args.gpux):  
         # Set the GPU environment.
         os.environ['THEANO_FLAGS'] = 'floatX=float32,device=gpu,' \
-                                     'lib.cnmem=1,nvcc.fastmath=True,' \
+                                     'lib.cnmem=0.9,nvcc.fastmath=True,' \
                                      'mode=FAST_RUN,blas.ldflags="-lblas -llapack"'
         # Re-execute this process with the new environment.
         exit(call([sys.executable] + sys.argv + ['--gpux']))
@@ -87,6 +88,14 @@ def _handle_show_stats_option(args):
         exit()
     else:    
         return 
+
+def get_celery_gpu():
+    """ Should we use the celery gpu training backend """
+    args = get_arguments()
+    if args.celery_gpu and (not args.use_celery):
+        msg = 'Must use celery backend when using celery gpu training option.'
+        _parser.error(msg)    
+    return args.celery_gpu
 
 def get_reuse_celery_cache():
     """ Should we use the celery training backend """

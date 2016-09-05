@@ -8,10 +8,14 @@ def get_master_dns(public=False):
     master = None
     for instance in instances:
         tags = instance.tags
+        state = instance.state['Name']
         for t in tags:
-            if t['Key'] == 'QueueRole' and t['Value'] == 'Master':
+            if state == 'running' and t['Key'] == 'QueueRole' and t['Value'] == 'Master':
                 master = instance
 
+    if master == None:
+        print('WARNING: No AWS Queue instance detected. Falling back to localhost')
+        return 'localhost' # AWS master instance not tagged.
     if public:
         return master.public_dns_name
     else:

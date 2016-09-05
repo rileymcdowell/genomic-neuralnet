@@ -5,6 +5,7 @@ from sklearn.utils.extmath import cartesian
 from genomic_neuralnet.config import NUM_FOLDS
 from genomic_neuralnet.util import get_is_time_stats
 
+TIMING_HIDDEN_SHAPE = [(256, 128)]
 _base_numbers = np.arange(1, 9, 2)
 _one_layer_nets = [ (3**x,) for x in _base_numbers] 
 _two_layer_nets = [ (2**(x+1), 2**x) for x in _base_numbers]
@@ -17,11 +18,10 @@ def _get_hidden_sizes():
         return _one_layer_nets + _two_layer_nets + _three_layer_nets
 
 RUNS = 2
-EPOCHS = 100000 # Should be divisible by 1000.
+EPOCHS = 12000 # Should be divisible by 1000.
 HIDDEN = _get_hidden_sizes()
 DROPOUT = (0.2, 0.3, 0.4, 0.5)
 WEIGHT_DECAY = (1e-7, 1e-6, 1e-5, 1e-4)
-TIMING_HIDDEN_SHAPE = (100,)
 
 assert len(DROPOUT) == len(WEIGHT_DECAY), 'Params must have same length'
 

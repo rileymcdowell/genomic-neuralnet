@@ -63,7 +63,15 @@ def get_queue_length():
 
 def main():
     # Start the worker.
-    app.worker_main(['worker', '--loglevel=INFO', '-Ofair']) 
+    args = ['worker', '--loglevel=INFO', '-Ofair']
+    if '--gpu' in sys.argv:
+        print('Configuring worker to use GPU training.')
+        os.environ['THEANO_FLAGS'] = 'floatX=float32,device=cpu,' \
+                                     'lib.cnmem=0.9,nvcc.fastmath=True,' \
+                                     'mode=FAST_RUN,blas.ldflags="-lblas -llapack",'
+        args.extend(['--concurrency', '1'])
+
+    app.worker_main(args) 
 
 if __name__ == '__main__':
     main()
