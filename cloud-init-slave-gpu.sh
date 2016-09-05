@@ -23,7 +23,9 @@ yum install libX11-devel -y
 yum install kernel-devel-$(uname -r) -y
 wget 'http://us.download.nvidia.com/XFree86/Linux-x86_64/367.44/NVIDIA-Linux-x86_64-367.44.run'
 /bin/bash NVIDIA-Linux-x86_64-367.44.run --silent --disable-nouveau --run-nvidia-xconfig
-
+# Set up nvcc.
+wget http://developer.download.nvidia.com/compute/cuda/7.5/Prod/local_installers/cuda_7.5.18_linux.run
+/bin/bash cuda_7.5.18_linux.run --toolkit --no-opengl-libs --silent
 
 # Easy python dependencies.
 pip install pytest mock nose six parse boto3

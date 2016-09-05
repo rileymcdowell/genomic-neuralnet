@@ -66,6 +66,7 @@ def main():
     args = ['worker', '--loglevel=INFO', '-Ofair']
     if '--gpu' in sys.argv:
         print('Configuring worker to use GPU training.')
+        os.environ['PATH'] = os.environ['PATH'] + os.pathsep + '/usr/local/cuda/bin'
         os.environ['THEANO_FLAGS'] = 'floatX=float32,device=cpu,' \
                                      'lib.cnmem=0.9,nvcc.fastmath=True,' \
                                      'mode=FAST_RUN,blas.ldflags="-lblas -llapack",'
