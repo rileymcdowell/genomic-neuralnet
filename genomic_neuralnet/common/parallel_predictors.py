@@ -70,12 +70,17 @@ def _run_celery(job_params):
         for _ in range(num_to_add):
             if get_reuse_celery_cache():
                 if is_disk_cached(job_idx):
+                    print('Skipping {}. Already completed'.format(job_idx))
                     done += 1
                     job_idx += 1
-                    continue
-            delayed = celery_try_predictor.delay(*job_params[job_idx])
-            results[job_idx] = delayed
-            job_idx += 1
+                    # Skip what's already done.
+            if job_idx >= len(job_idx):
+                continue # Don't run past the end of the list of parameters to run.
+            else:
+                delayed = celery_try_predictor.delay(*job_params[job_idx])
+                results[job_idx] = delayed
+                job_idx += 1
+
         # Cache finished work.
         keys = results.keys()
         for key in keys:
