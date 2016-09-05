@@ -69,7 +69,7 @@ def _run_celery(job_params):
         # Add messages to fill queue.
         for _ in range(num_to_add):
             if get_reuse_celery_cache():
-                if is_disk_cached(job_idx):
+                while is_disk_cached(job_idx):
                     print('Skipping {}. Already completed'.format(job_idx))
                     done += 1
                     job_idx += 1
