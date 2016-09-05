@@ -58,7 +58,9 @@ def _maybe_set_parallel_args(args):
     parallelism option no matter when Theano is
     imported.
     """
-    is_celery = 'celery_slave.py' in sys.argv
+    # This is a good guess to tell if the current process is
+    # actually a slave worker.
+    is_celery = 'celery_slave.py' in ' '.join(sys.argv)
 
     if (not is_celery) and args.gpu and (not args.gpux):
         # Set the GPU environment.
