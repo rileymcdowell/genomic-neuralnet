@@ -81,7 +81,8 @@ popd
 cat << EOF >> $USER_HOME/crontab.init
 HOME=/home/ec2-user
 SHELL=/bin/bash
-PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+PATH=/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+LD_LIBRARY_PATH=/usr/local/cuda/lib64
 * * * * * flock -n $USER_HOME/celery_slave.lockfile python $USER_HOME/genomic-neuralnet/genomic_neuralnet/common/celery_slave.py --gpu &>> slave_worker.log
 EOF
 
