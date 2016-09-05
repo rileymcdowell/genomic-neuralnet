@@ -26,6 +26,11 @@ wget 'http://us.download.nvidia.com/XFree86/Linux-x86_64/367.44/NVIDIA-Linux-x86
 # Set up nvcc.
 wget http://developer.download.nvidia.com/compute/cuda/7.5/Prod/local_installers/cuda_7.5.18_linux.run
 /bin/bash cuda_7.5.18_linux.run --toolkit --no-opengl-libs --silent
+# Set up cudnn.
+aws s3 cp s3://instance-cache/dependencies/cudnn-7.0-linux-x64-v4.0-prod.tgz .
+tar xvzf cudnn-7.0-linux-x64-v4.0-prod.tgz
+cp cuda/lib64/libcudnn* /usr/local/cuda/lib64/
+cp cuda/include/cudnn.h /usr/local/cuda/include/
 
 # Easy python dependencies.
 pip install pytest mock nose six parse boto3
