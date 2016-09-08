@@ -33,9 +33,9 @@ def two_line_label((species, trait)):
     trait_name = trait.replace('_', ' ').title()
     return '{}\n{}'.format(species_name, trait_name)
 
-def make_plot(timing_df):
+def make_plot(timing_df, size, ax):
 
-    fig, ax = plt.subplots()
+    timing_df = timing_df[timing_df['size'] == size]
 
     unique_species = timing_df['species'].unique()
     x = np.arange(len(unique_species))
@@ -65,9 +65,9 @@ def make_plot(timing_df):
     species_labels = np.empty(len(unique_species)*NUM_TRAITS, dtype=object) 
     trait_labels = np.empty(len(unique_species)*NUM_TRAITS, dtype=object)
 
-
     data_lookup = defaultdict(lambda: defaultdict(dict))
     peak_lookup = defaultdict(lambda: defaultdict(dict))
+    all_means = []
 
     for idx, (_, row) in enumerate(traits_and_procs[['trait_id', 'processor']].drop_duplicates().iterrows()):
         trait_id = row['trait_id']
@@ -95,6 +95,7 @@ def make_plot(timing_df):
             trait_labels[label_idx] = trait 
             data_lookup[species][trait][proc] = data_df['time'].values
             peak_lookup[species][trait][proc] = mean + std_err
+            all_means.extend(means)
 
         offset = width * idx + (0 if trait_id == 0 else 0.1)
         color = palette[int(proc == 'cpu')]
@@ -125,25 +126,39 @@ def make_plot(timing_df):
                , ha='center'
                , va='bottom')
 
-    ax.set_ylabel('Average Time (seconds) Per {} Epochs'.format(str(TIMING_EPOCHS/1000) + 'K'))
+    ax.set_ylabel('Average Time (seconds)\nPer {} Epochs'.format(str(TIMING_EPOCHS/1000) + 'K'))
     ax.set_xticks(label_positions)
     ax.set_xticklabels(map(two_line_label, zip(species_labels, trait_labels))) 
     ax.set_xlim((0 - width / 2, len(x)))
-    
-    # Legend
-    cpu_patch = ptch.Patch(color=palette[int(True)], label='CPU')
-    gpu_patch = ptch.Patch(color=palette[int(False)], label='GPU')
-    ax.legend(handles=[cpu_patch, gpu_patch])
+    ax.set_ylim((0, np.max(all_means) * 1.15)) 
+    if size == 'small':
+        ax.set_title('Small Network') 
+    if size == 'large':
+        ax.set_title('Large Network') 
 
+    if size == 'small':
+        # Legend only on small network plot.
+        cpu_patch = ptch.Patch(color=palette[int(True)], label='CPU')
+        gpu_patch = ptch.Patch(color=palette[int(False)], label='GPU')
+        ax.legend(handles=[cpu_patch, gpu_patch])
+
+    return ax
+
+SPECIES = ['arabidopsis', 'wheat', 'maize']
+    
+def main():
+    timing_df = get_timing_data() 
+    timing_df = timing_df[timing_df['species'].isin(SPECIES)]
+
+    fig, ax_arr = plt.subplots(2, 1, sharex=True, sharey=True)
+    make_plot(timing_df, size='small', ax=ax_arr[0])
+    make_plot(timing_df, size='large', ax=ax_arr[1])
+
+    # Show and save plot.
     plt.tight_layout()
     fig_path = os.path.join(out_dir, 'time_comparison.png')
     plt.savefig(fig_path)
     plt.show()
-    
-def main():
-    timing_df = get_timing_data() 
-
-    make_plot(timing_df)
 
 if __name__ == '__main__':
     main()

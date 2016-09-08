@@ -16,7 +16,7 @@ from genomic_neuralnet.common import run_predictors
 from genomic_neuralnet.util import \
         get_is_on_gpu, get_species_and_trait, get_verbose, \
         get_should_force, get_is_dryrun
-from genomic_neuralnet.analyses import OptimizationResult, RUNS
+from genomic_neuralnet.analyses import OptimizationResult, RUNS 
 
 species, trait = get_species_and_trait()
 verbose = get_verbose()

@@ -39,17 +39,19 @@ def get_timing_data():
             continue
         species = file_name.split('_')[0]
         processor = file_name.split('_')[-1].split('.')[0]
-        trait = file_name[len(species) + 1:-1*((len(processor) + 4) + 1)]
+        size = file_name.split('_')[-2]
+        # Trait is anything that is not the species, trait, or size.
+        trait = file_name[len(species) + 1:-1*((len(processor) + 4) + len(size) + 2)]
         full_path = os.path.join(timing_dir, file_name)
         for line in open(full_path, 'r'):
             try:
                 time = json.loads(line)['seconds']
-                records.append((species, trait, processor, time))
+                records.append((species, trait, size, processor, time))
             except:
                 continue # a non-json log line.
 
     df = pd.DataFrame.from_records(records)
-    df.columns = ['species', 'trait', 'processor', 'time']
+    df.columns = ['species', 'trait', 'size', 'processor', 'time']
     return df
 
 def get_nn_model_data():

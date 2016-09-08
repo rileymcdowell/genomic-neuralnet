@@ -22,6 +22,7 @@ _parser.add_argument('--plot', action='store_true', help='Create many convergenc
 _parser.add_argument('--use-celery', action='store_true', help='Use celery backend')
 _parser.add_argument('--celery-gpu', action='store_true', help='Tell celery to run GPU training.')
 _parser.add_argument('--reuse-celery-cache', action='store_true', help='Pick up celery cache where it left off')
+_parser.add_argument('--timing-size', default=None, choices=['small', 'large'], help='Shape of network for timing run.')
 
 _arguments = None
 def get_arguments():
@@ -93,6 +94,14 @@ def _handle_show_stats_option(args):
     else:    
         return 
 
+def get_timing_size():
+    """ Determine if we are running a large or small network for timing """
+    args = get_arguments()
+    if isinstance(args.timing_size, str) and not args.time_stats:
+        msg = 'Must use timing stats option when setting network size.'
+        _parser.error(msg)    
+    return args.timing_size
+
 def get_celery_gpu():
     """ Should we use the celery gpu training backend """
     args = get_arguments()
@@ -122,6 +131,9 @@ def get_should_force():
 def get_is_time_stats():
     """ Print json time statistics for run. """
     args = get_arguments()
+    if args.time_stats and not isinstance(args.timing_size, str):
+        msg = 'Must specify timing_size (small, large) option when collecting timing stats.'
+        _parser.error(msg)    
     return args.time_stats
 
 def get_should_plot():

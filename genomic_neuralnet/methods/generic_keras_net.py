@@ -193,7 +193,7 @@ def get_net_prediction( train_data, train_truth, test_data, test_truth
     if collect_time_stats: 
         end = time.time()
         print('Fitting took {} seconds'.format(end - start))
-        print(json.dumps({'seconds': end - start}))
+        print(json.dumps({'seconds': end - start, 'hidden': container.hidden_layers}))
 
     # Unsupervised (test) dataset.
     predicted = _predict(container, test_data)

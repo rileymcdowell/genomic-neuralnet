@@ -3,17 +3,21 @@
 import numpy as np
 from sklearn.utils.extmath import cartesian
 from genomic_neuralnet.config import NUM_FOLDS
-from genomic_neuralnet.util import get_is_time_stats
+from genomic_neuralnet.util import get_is_time_stats, get_timing_size
 
-TIMING_HIDDEN_SHAPE = [(256, 128)]
+LARGE_TIMING_HIDDEN_SHAPE = [(64, 32)]
+SMALL_TIMING_HIDDEN_SHAPE = [(27,)]
+
 _base_numbers = np.arange(1, 9, 2)
 _one_layer_nets = [ (3**x,) for x in _base_numbers] 
 _two_layer_nets = [ (2**(x+1), 2**x) for x in _base_numbers]
 _three_layer_nets = [ (2**(x+2), 2**(x+1), 2**x) for x in _base_numbers]
 
 def _get_hidden_sizes():
-    if get_is_time_stats():
-        return TIMING_HIDDEN_SHAPE 
+    if get_timing_size() == 'small': 
+        return SMALL_TIMING_HIDDEN_SHAPE
+    elif get_timing_size() == 'large':
+        return LARGE_TIMING_HIDDEN_SHAPE 
     else:
         return _one_layer_nets + _two_layer_nets + _three_layer_nets
 

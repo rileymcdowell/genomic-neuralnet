@@ -69,7 +69,7 @@ def main():
         os.environ['PATH'] = os.environ.get('PATH', '') + os.pathsep + '/usr/local/cuda/bin'
         os.environ['LD_LIBRARY_PATH'] = os.environ.get('LD_LIBRARY_PATH', '') + os.pathsep + '/usr/local/cuda/lib64'
         os.environ['THEANO_FLAGS'] = 'floatX=float32,device=cpu,' \
-                                     'lib.cnmem=0.9,nvcc.fastmath=True,' \
+                                     'lib.cnmem=0.8,nvcc.fastmath=True,' \
                                      'mode=FAST_RUN,blas.ldflags="-lblas -llapack",'
         args.extend(['--concurrency', '1'])
 
