@@ -13,7 +13,7 @@ from genomic_neuralnet.config import CPU_CORES, NUM_FOLDS
 from genomic_neuralnet.config import PARALLEL_BACKEND, SINGLE_CORE_BACKEND
 from genomic_neuralnet.util import get_markers_and_pheno, get_use_celery, \
                                    get_verbose, get_reuse_celery_cache, \
-                                   get_celery_gpu
+                                   get_celery_gpu, get_species_and_trait
 from genomic_neuralnet.common.read_clean_data import get_clean_data
 
 ACCURACY_IDX = 0
@@ -111,6 +111,7 @@ def run_predictors(prediction_functions, backend=SINGLE_CORE_BACKEND, random_see
     Returns the accuracies of the functions as list of arrays
     ordered by function.
     """
+    species, trait = get_species_and_trait()
     # Set up the parameters for processing.
     pred_func_idxs = range(len(prediction_functions))
     accuracy_results = []
@@ -120,7 +121,7 @@ def run_predictors(prediction_functions, backend=SINGLE_CORE_BACKEND, random_see
             for fold_idx in range(NUM_FOLDS):
                 identifier = (fold_idx, prediction_function_idx)
                 prediction_function = prediction_functions[prediction_function_idx]
-                params = (prediction_function, random_seed, identifier, retry_nans, get_celery_gpu())
+                params = (prediction_function, random_seed, species, trait, identifier, retry_nans, get_celery_gpu())
                 job_params.append(params)
 
         # Run the jobs and return a tuple of the accuracy and the id (which is also a tuple).

@@ -157,8 +157,11 @@ def get_is_dryrun():
     args = get_arguments()
     return args.dryrun
 
-def get_markers_and_pheno():
-    species, trait = get_species_and_trait()
+def get_markers_and_pheno(species, trait):
+    """ 
+    Must pass species and trait in case called
+    from another process.
+    """
     markers = data[species][trait].markers
     pheno = data[species][trait].pheno
     return markers, pheno

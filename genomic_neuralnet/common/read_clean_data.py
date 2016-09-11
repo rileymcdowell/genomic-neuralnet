@@ -6,8 +6,8 @@ from genomic_neuralnet.config import REQUIRED_MARKER_CALL_PROPORTION, \
                                      REQUIRED_MARKERS_PER_SAMPLE_PROP
 from genomic_neuralnet.util import get_markers_and_pheno
 
-def get_clean_data():
-    markers, pheno = get_markers_and_pheno()
+def get_clean_data(species, trait):
+    markers, pheno = get_markers_and_pheno(species, trait)
 
     # Remove missing phenotypic values from both datasets.
     has_trait_data = pheno.notnull()

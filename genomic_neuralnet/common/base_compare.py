@@ -6,12 +6,12 @@ import scipy.stats as sps
 from genomic_neuralnet.config import NUM_FOLDS
 from genomic_neuralnet.common.read_clean_data import get_clean_data
 
-def try_predictor(prediction_function, random_seed, id_val=None, retry_nans=False, config_gpu=False):
+def try_predictor(prediction_function, random_seed, species, trait, id_val=None, retry_nans=False, config_gpu=False):
     """
     Pass in markers, phenotypes, and a list of prediction functions.
     Returns the prediction accuracy (pearson r) relative to measured phenotype. 
     """
-    markers, pheno = get_clean_data()
+    markers, pheno = get_clean_data(species, trait)
 
     # Force set GPU just before fitting if requested.
     # This option overrides any environment variable.
