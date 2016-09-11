@@ -21,10 +21,10 @@ yum install htop -y
 # Set up GPU.
 yum install libX11-devel -y
 yum install kernel-devel-$(uname -r) -y
-wget 'http://us.download.nvidia.com/XFree86/Linux-x86_64/367.44/NVIDIA-Linux-x86_64-367.44.run'
+wget 'http://us.download.nvidia.com/XFree86/Linux-x86_64/367.44/NVIDIA-Linux-x86_64-367.44.run' --quiet
 /bin/bash NVIDIA-Linux-x86_64-367.44.run --silent --disable-nouveau --run-nvidia-xconfig
 # Set up nvcc.
-wget http://developer.download.nvidia.com/compute/cuda/7.5/Prod/local_installers/cuda_7.5.18_linux.run
+wget 'http://developer.download.nvidia.com/compute/cuda/7.5/Prod/local_installers/cuda_7.5.18_linux.run' --quiet
 /bin/bash cuda_7.5.18_linux.run --toolkit --no-opengl-libs --silent
 # Set up cudnn.
 aws s3 cp s3://instance-cache/dependencies/cudnn-7.0-linux-x64-v4.0-prod.tgz .
