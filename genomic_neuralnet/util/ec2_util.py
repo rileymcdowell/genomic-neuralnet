@@ -3,7 +3,7 @@ from __future__ import print_function
 import boto3
 
 def get_master_dns(public=False):
-    ec2 = boto3.resource('ec2', region_name='us-east-1') 
+    ec2 = boto3.resource('ec2', region_name='ap-northeast-1') 
     instances = ec2.instances.all()
     master = None
     for instance in instances:
