@@ -19,6 +19,7 @@ yum install blas-devel lapack-devel -y
 yum install htop -y
 
 # Set up GPU.
+pushd /root # Install into root's home.
 yum install libX11-devel -y
 yum install kernel-devel-$(uname -r) -y
 wget 'http://us.download.nvidia.com/XFree86/Linux-x86_64/367.44/NVIDIA-Linux-x86_64-367.44.run' --quiet
@@ -31,6 +32,7 @@ aws s3 cp s3://instance-cache/dependencies/cudnn-7.0-linux-x64-v4.0-prod.tgz .
 tar xvzf cudnn-7.0-linux-x64-v4.0-prod.tgz
 cp cuda/lib64/libcudnn* /usr/local/cuda/lib64/
 cp cuda/include/cudnn.h /usr/local/cuda/include/
+popd
 
 # Easy python dependencies.
 pip install pytest mock nose six parse boto3
