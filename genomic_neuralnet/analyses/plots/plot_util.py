@@ -112,6 +112,7 @@ def get_significance_letters(accuracy_df, ordered_model_names):
                 pval_lookup[species][trait][frozenset([model_1, model_2])] = p_value
 
     # Now, produce a way to look up pairwise hypothesis rejection.
+    # lookup[species][trait][hypothesis (model pair)] = reject or not
     hypothesis_lookup = defaultdict(lambda: defaultdict(lambda: {}))
     
     _ALPHA = 0.05
@@ -135,6 +136,7 @@ def get_significance_letters(accuracy_df, ordered_model_names):
                 hypothesis_lookup[species][trait][hypothesis] = rejection
 
     # Assign numbers to each hypothesis 'cluster'.
+    # lookup[species][trait][model] = number
     significance_number_lookup = defaultdict(lambda: defaultdict(dict))
     for species, trait_dict in hypothesis_lookup.iteritems():
         for trait, hypothesis_sets in trait_dict.iteritems(): 

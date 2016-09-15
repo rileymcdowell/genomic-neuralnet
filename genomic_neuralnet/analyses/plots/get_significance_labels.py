@@ -23,7 +23,7 @@ def multi_compose(graphs):
 class Container(object):
     pass
 
-def get_labels(comparisons, rejections):
+def get_labels(comparisons, rejections, verbose=False):
     """
     See https://en.wikipedia.org/wiki/Intersection_number(graph_theory)
     This algorithms finds the clique edge cover, or the smallest number
@@ -34,8 +34,17 @@ def get_labels(comparisons, rejections):
 
     graph = nx.Graph()
     for (x1, x2), reject in zip(comparisons, rejections):
+        # Make sure all nodes present, duplicates are ignored by default.
+        graph.add_node(x1)
+        graph.add_node(x2)
+        # and non-rejected hypotheses.
         if not reject:
             graph.add_edge(x1, x2)
+
+    if verbose:
+        print('here')
+        print(list(graph.edges()))
+        print('done')
 
     all_cliques = list(enumerate_all_cliques(graph))
     clique_combinations = powerset(all_cliques) 
