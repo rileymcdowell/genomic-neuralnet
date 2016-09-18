@@ -121,7 +121,7 @@ def make_plot(accuracy_df):
 
     plt.tight_layout()
     fig_path = os.path.join(out_dir, 'network_comparison.png')
-    plt.savefig(fig_path)
+    plt.savefig(fig_path, dpi=500)
     plt.show()
     
 def main():

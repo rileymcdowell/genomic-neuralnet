@@ -83,15 +83,15 @@ def make_plot(accuracy_df):
                      , 'saturation': 1.0
                      }
     subplot_columns = ['depth', 'mean', 'model']
-    g = sns.FacetGrid(accuracy_df, col="trait_id", row="species", ylim=(-0.5, 1))
+    g = sns.FacetGrid(accuracy_df, row="trait_id", col="species", ylim=(0.0, 1))
     g = g.map(sns.violinplot, *subplot_columns, **violin_params) \
         .set_axis_labels("Number of Hidden Layers", "Average Accuracy")
 
-    legend_data = g.axes[2][1].get_legend_handles_labels()
-    g.axes[2][1].legend(*legend_data, loc='lower left')
+    legend_data = g.axes[1][2].get_legend_handles_labels()
+    g.axes[1][2].legend(*legend_data, loc='lower left')
 
-    for species_idx, trait_idx in np.ndindex(g.axes.shape):
-        ax = g.axes[species_idx, trait_idx]
+    for trait_idx, species_idx in np.ndindex(g.axes.shape):
+        ax = g.axes[trait_idx, species_idx]
         species = species_list[species_idx]
         trait = trait_by_species[species][trait_idx]
         ax.set_title(two_line_label((species, trait)))
@@ -129,7 +129,7 @@ def make_plot(accuracy_df):
 
     plt.tight_layout()
     fig_path = os.path.join(out_dir, 'depth_comparison.png') 
-    plt.savefig(fig_path)
+    plt.savefig(fig_path, dpi=500)
     plt.show()
     
 def main():

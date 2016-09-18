@@ -30,7 +30,7 @@ NUM_TRAITS = 2
 
 def two_line_label((species, trait)):
     species_name = species.title()
-    trait_name = trait.replace('_', ' ').title()
+    trait_name = trait.replace('_', '\n').title()
     return '{}\n{}'.format(species_name, trait_name)
 
 def make_plot(timing_df, size, ax):
@@ -157,7 +157,7 @@ def main():
     # Show and save plot.
     plt.tight_layout()
     fig_path = os.path.join(out_dir, 'time_comparison.png')
-    plt.savefig(fig_path)
+    plt.savefig(fig_path, dpi=500)
     plt.show()
 
 if __name__ == '__main__':

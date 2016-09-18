@@ -57,14 +57,21 @@ def max_bold_format(max_vals, num):
         return '{:0.2f}'.format(num)
 
 LEVEL_ORDER = ['OLS', 'RR', 'LASSO', 'RBF', 'EN', 'BRR', 'N', 'NWD', 'NDO', 'NWDDO']
+LEVEL_SIZES = { 1:'m{1.6em}'
+              , 2:'m{1.6em}'
+              , 3:'m{1.6em}'
+              , 4:'m{2.2em}'
+              , 5:'m{2.2em}'
+              }
+
 
 def write_latex(df):
     
     n_cols = len(df.columns)
 
     lines = []
-    column_format = ' '.join(('m{3em}',) * n_cols)
-    lines.append('\\begin{{tabularx}}{{\\textwidth}}{{ m{{6em}} X {} }}'.format(column_format))
+    column_format = ' '.join(map(LEVEL_SIZES.get, map(len, LEVEL_ORDER)))
+    lines.append('\\begin{{tabularx}}{{\\textwidth}}{{ m{{4.8em}} m{{4.8em}} {} }}'.format(column_format))
 
     # Write multi-level headers.
     lines.append('\\hline')
@@ -77,6 +84,7 @@ def write_latex(df):
     lines.append('\\hline')
     header_3 = ' '.join(('&',)*n_cols)
     lines.append('\\header Species & Trait {} \\\\'.format(header_3))
+    lines.append('\\hline')
     # Write table data. 
     idx = 0
     for (species, trait), row in df.iterrows():
@@ -92,9 +100,9 @@ def write_latex(df):
         max_model = row.max()
         for val in row.values:
             if val == max_model:
-                row_data.append('\\underline{{{:0.3f}}}'.format(val))
+                row_data.append('\\underline{{{:0.2f}}}'.format(val))
             else:
-                row_data.append('{:0.3f}'.format(val))
+                row_data.append('{:0.2f}'.format(val))
 
 
         lines.append(' & '.join(row_data) + ' \\\\')
