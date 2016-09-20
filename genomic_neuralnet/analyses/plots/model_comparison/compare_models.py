@@ -56,7 +56,11 @@ def max_bold_format(max_vals, num):
     else:
         return '{:0.2f}'.format(num)
 
-LEVEL_ORDER = ['OLS', 'RR', 'LASSO', 'RBF', 'EN', 'BRR', 'N', 'NWD', 'NDO', 'NWDDO']
+LEVEL_ORDER = [ 'OLS', 'RR', 'LASSO' #, 'RBF'
+              , 'EN', 'BRR', 'N', 'NWD'
+              , 'NDO', 'NWDDO'
+              ]
+
 LEVEL_SIZES = { 1:'m{1.6em}'
               , 2:'m{1.6em}'
               , 3:'m{1.6em}'
@@ -77,7 +81,8 @@ def write_latex(df):
     lines.append('\\hline')
     header1 = '\\multicolumn{{{}}}{{c}}{{Accuracy}}'.format(n_cols)
     lines.append('\\header & & {} \\\\'.format(header1))
-    columns = list(df.columns.levels[1])
+    columns = set(df.columns.levels[1])
+    columns = list(columns.intersection(set(LEVEL_ORDER)))
     columns.sort(key=lambda x: LEVEL_ORDER.index(x))
     header2 = ' & '.join(columns)
     lines.append('\\header & & {} \\\\'.format(header2))
