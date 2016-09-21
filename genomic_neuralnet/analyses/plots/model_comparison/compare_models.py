@@ -71,7 +71,7 @@ LEVEL_SIZES = { 1:'m{1.6em}'
 
 def write_latex(df):
     
-    n_cols = len(df.columns)
+    n_cols = len(LEVEL_ORDER)
 
     lines = []
     column_format = ' '.join(map(LEVEL_SIZES.get, map(len, LEVEL_ORDER)))
