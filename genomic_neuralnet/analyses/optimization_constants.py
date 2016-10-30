@@ -5,7 +5,7 @@ from sklearn.utils.extmath import cartesian
 from genomic_neuralnet.config import NUM_FOLDS
 from genomic_neuralnet.util import get_is_time_stats, get_timing_size
 
-LARGE_TIMING_HIDDEN_SHAPE = [(64, 32)]
+LARGE_TIMING_HIDDEN_SHAPE = [(128, 64)]
 SMALL_TIMING_HIDDEN_SHAPE = [(27,)]
 
 _base_numbers = np.arange(1, 9, 2)
